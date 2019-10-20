@@ -26,15 +26,17 @@ defmodule Matrax do
       false
   """
 
-  @enforce_keys [:atomics, :rows, :columns, :min, :max]
-  defstruct [:atomics, :rows, :columns, :min, :max]
+  @keys [:atomics, :rows, :columns, :min, :max, :signed]
+  @enforce_keys @keys
+  defstruct @keys
 
   @type t :: %__MODULE__{
           atomics: reference,
           rows: pos_integer,
           columns: pos_integer,
           min: integer,
-          max: pos_integer
+          max: pos_integer,
+          signed: boolean
         }
 
   @type position :: {row :: non_neg_integer, col :: non_neg_integer}
@@ -61,7 +63,14 @@ defmodule Matrax do
 
     %{min: min, max: max} = :atomics.info(atomics)
 
-    matrax = %Matrax{atomics: atomics, rows: rows, columns: columns, min: min, max: max}
+    matrax = %Matrax{
+      atomics: atomics,
+      rows: rows,
+      columns: columns,
+      min: min,
+      max: max,
+      signed: signed
+    }
 
     if seed_fun do
       Matrax.apply(matrax, seed_fun)
@@ -435,6 +444,37 @@ defmodule Matrax do
       ^integer -> true
       _else -> do_member?(atomics, index - 1, integer)
     end
+  end
+
+  @doc """
+  Returns a `%Matrax{}` struct with a new atomics reference
+  which values are identical to the given `matrax`.
+
+      iex> matrax = Matrax.new(10, 10)
+      iex> matrax |> Matrax.put({0, 0}, -9)
+      iex> matrax2 =  Matrax.copy(matrax)
+      iex> Matrax.get(matrax2, {0, 0})
+      -9
+  """
+  @spec copy(t) :: t
+  def copy(%Matrax{atomics: atomics, signed: signed} = matrax) do
+    new_atomics = :atomics.new(size(matrax), signed: signed)
+
+    do_copy(atomics, new_atomics, size(matrax))
+
+    %Matrax{matrax | atomics: new_atomics}
+  end
+
+  defp do_copy(_, _, 0) do
+    :done
+  end
+
+  defp do_copy(atomics, new_atomics, index) do
+    value = :atomics.get(atomics, index)
+
+    :atomics.put(new_atomics, index, value)
+
+    do_copy(atomics, new_atomics, index - 1)
   end
 
   defimpl Enumerable do
