@@ -142,7 +142,7 @@ defmodule Matrax do
   end
 
   @doc """
-  Adds `incr` to atomic at `position` and return result.
+  Adds `incr` to atomic at `position`.
 
   ## Examples
 
