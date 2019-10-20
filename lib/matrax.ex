@@ -458,7 +458,12 @@ defmodule Matrax do
 
   @doc """
   Returns a `%Matrax{}` struct with a new atomics reference
-  which values are identical to the given `matrax`.
+  and positional values identical to the given `matrax`.
+
+  The returned copy is always `transposed: false` so this
+  can be used to finish the access-path only transpose
+  by the `transpose/1` function.
+
 
       iex> matrax = Matrax.new(10, 10)
       iex> matrax |> Matrax.put({0, 0}, -9)
@@ -467,24 +472,26 @@ defmodule Matrax do
       -9
   """
   @spec copy(t) :: t
-  def copy(%Matrax{atomics: atomics, signed: signed} = matrax) do
-    new_atomics = :atomics.new(size(matrax), signed: signed)
+  def copy(%Matrax{} = matrax) do
+    new_atomics = :atomics.new(size(matrax), signed: matrax.signed)
 
-    do_copy(atomics, new_atomics, size(matrax))
+    matrax_copy = %Matrax{matrax | atomics: new_atomics, transposed: false}
 
-    %Matrax{matrax | atomics: new_atomics}
+    do_copy(matrax, matrax_copy, size(matrax))
+
+    matrax_copy
   end
 
   defp do_copy(_, _, 0) do
     :done
   end
 
-  defp do_copy(atomics, new_atomics, index) do
-    value = :atomics.get(atomics, index)
+  defp do_copy(matrax, matrax_copy, index) do
+    value = :atomics.get(matrax.atomics, index)
 
-    :atomics.put(new_atomics, index, value)
+    put(matrax_copy, index_to_position(matrax, index), value)
 
-    do_copy(atomics, new_atomics, index - 1)
+    do_copy(matrax, matrax_copy, index - 1)
   end
 
   @doc """
