@@ -26,11 +26,11 @@ defmodule Matrax do
       false
   """
 
-  @enforce_keys [:atomics_ref, :rows, :columns, :min, :max]
-  defstruct [:atomics_ref, :rows, :columns, :min, :max]
+  @enforce_keys [:atomics, :rows, :columns, :min, :max]
+  defstruct [:atomics, :rows, :columns, :min, :max]
 
   @type t :: %__MODULE__{
-          atomics_ref: reference,
+          atomics: reference,
           rows: pos_integer,
           columns: pos_integer,
           min: integer,
@@ -57,11 +57,11 @@ defmodule Matrax do
     seed_fun = Keyword.get(options, :seed_fun, nil)
     signed = Keyword.get(options, :signed, true)
 
-    atomics_ref = :atomics.new(rows * columns, signed: signed)
+    atomics = :atomics.new(rows * columns, signed: signed)
 
-    %{min: min, max: max} = :atomics.info(atomics_ref)
+    %{min: min, max: max} = :atomics.info(atomics)
 
-    matrax = %Matrax{atomics_ref: atomics_ref, rows: rows, columns: columns, min: min, max: max}
+    matrax = %Matrax{atomics: atomics, rows: rows, columns: columns, min: min, max: max}
 
     if seed_fun do
       Matrax.apply(matrax, seed_fun)
@@ -117,10 +117,10 @@ defmodule Matrax do
       3
   """
   @spec get(t, position) :: integer
-  def get(%Matrax{atomics_ref: atomics_ref} = matrax, position) do
+  def get(%Matrax{atomics: atomics} = matrax, position) do
     index = position_to_index(matrax, position)
 
-    :atomics.get(atomics_ref, index)
+    :atomics.get(atomics, index)
   end
 
   @doc """
@@ -135,16 +135,14 @@ defmodule Matrax do
       :ok
   """
   @spec put(t, position, integer) :: :ok
-  def put(%Matrax{atomics_ref: atomics_ref} = matrax, position, value) when is_integer(value) do
+  def put(%Matrax{atomics: atomics} = matrax, position, value) when is_integer(value) do
     index = position_to_index(matrax, position)
 
-    :atomics.put(atomics_ref, index, value)
+    :atomics.put(atomics, index, value)
   end
 
   @doc """
-  Atomic addition and return of the result.
-
-  Adds `incr` to value at `position` and return result.
+  Adds `incr` to atomic at `position` and return result.
 
   ## Examples
 
@@ -156,17 +154,31 @@ defmodule Matrax do
       iex> matrax |> Matrax.get({0, 0})
       4
   """
-  @spec add(t, position, integer) :: integer
-  def add(%Matrax{atomics_ref: atomics_ref} = matrax, position, incr) when is_integer(incr) do
+  @spec add(t, position, integer) :: :ok
+  def add(%Matrax{atomics: atomics} = matrax, position, incr) when is_integer(incr) do
     index = position_to_index(matrax, position)
 
-    :atomics.add(atomics_ref, index, incr)
+    :atomics.add(atomics, index, incr)
   end
 
-  def add_get(%Matrax{atomics_ref: atomics_ref} = matrax, position, incr) when is_integer(incr) do
+  @doc """
+  Atomic addition and return of the result.
+
+  Adds `incr` to atomic at `position` and returns result.
+
+  ## Examples
+
+      iex> matrax = Matrax.new(10, 10)
+      iex> matrax |> Matrax.add_get({0, 0}, 2)
+      2
+      iex> matrax |> Matrax.add_get({0, 0}, 2)
+      4
+  """
+  @spec add_get(t, position, integer) :: integer
+  def add_get(%Matrax{atomics: atomics} = matrax, position, incr) when is_integer(incr) do
     index = position_to_index(matrax, position)
 
-    :atomics.add_get(atomics_ref, index, incr)
+    :atomics.add_get(atomics, index, incr)
   end
 
   @doc """
@@ -185,11 +197,11 @@ defmodule Matrax do
       -10
   """
   @spec compare_exchange(t, position, integer, integer) :: :ok | integer
-  def compare_exchange(%Matrax{atomics_ref: atomics_ref} = matrax, position, expected, desired)
+  def compare_exchange(%Matrax{atomics: atomics} = matrax, position, expected, desired)
       when is_integer(expected) and is_integer(desired) do
     index = position_to_index(matrax, position)
 
-    :atomics.compare_exchange(atomics_ref, index, expected, desired)
+    :atomics.compare_exchange(atomics, index, expected, desired)
   end
 
   @doc """
@@ -205,11 +217,11 @@ defmodule Matrax do
       -10
   """
   @spec exchange(t, position, integer) :: integer
-  def exchange(%Matrax{atomics_ref: atomics_ref} = matrax, position, value)
+  def exchange(%Matrax{atomics: atomics} = matrax, position, value)
       when is_integer(value) do
     index = position_to_index(matrax, position)
 
-    :atomics.exchange(atomics_ref, index, value)
+    :atomics.exchange(atomics, index, value)
   end
 
   @doc """
@@ -220,7 +232,7 @@ defmodule Matrax do
       iex> matrax = Matrax.new(5, 5)
       iex> Matrax.size(matrax)
       25
-      iex> Matrax.size(matrax) == :atomics.info(matrax.atomics_ref).size
+      iex> Matrax.size(matrax) == :atomics.info(matrax.atomics).size
       true
   """
   @spec size(t) :: pos_integer
@@ -238,16 +250,16 @@ defmodule Matrax do
       7
   """
   @spec min(t) :: integer
-  def min(%Matrax{atomics_ref: atomics_ref} = matrax) do
+  def min(%Matrax{atomics: atomics} = matrax) do
     last_index = size(matrax)
 
-    do_min(atomics_ref, last_index - 1, :atomics.get(atomics_ref, last_index))
+    do_min(atomics, last_index - 1, :atomics.get(atomics, last_index))
   end
 
   defp do_min(_, 0, acc), do: acc
 
-  defp do_min(atomics_ref, index, acc) do
-    do_min(atomics_ref, index - 1, Kernel.min(acc, :atomics.get(atomics_ref, index)))
+  defp do_min(atomics, index, acc) do
+    do_min(atomics, index - 1, Kernel.min(acc, :atomics.get(atomics, index)))
   end
 
   @doc """
@@ -260,16 +272,16 @@ defmodule Matrax do
       81
   """
   @spec max(t) :: integer
-  def max(%Matrax{atomics_ref: atomics_ref} = matrax) do
+  def max(%Matrax{atomics: atomics} = matrax) do
     last_index = size(matrax)
 
-    do_max(atomics_ref, last_index - 1, :atomics.get(atomics_ref, last_index))
+    do_max(atomics, last_index - 1, :atomics.get(atomics, last_index))
   end
 
   defp do_max(_, 0, acc), do: acc
 
-  defp do_max(atomics_ref, index, acc) do
-    do_max(atomics_ref, index - 1, Kernel.max(acc, :atomics.get(atomics_ref, index)))
+  defp do_max(atomics, index, acc) do
+    do_max(atomics, index - 1, Kernel.max(acc, :atomics.get(atomics, index)))
   end
 
   @doc """
@@ -282,16 +294,16 @@ defmodule Matrax do
       2025
   """
   @spec sum(t) :: integer
-  def sum(%Matrax{atomics_ref: atomics_ref} = matrax) do
+  def sum(%Matrax{atomics: atomics} = matrax) do
     last_index = size(matrax)
 
-    do_sum(atomics_ref, last_index - 1, :atomics.get(atomics_ref, last_index))
+    do_sum(atomics, last_index - 1, :atomics.get(atomics, last_index))
   end
 
   defp do_sum(_, 0, acc), do: acc
 
-  defp do_sum(atomics_ref, index, acc) do
-    do_sum(atomics_ref, index - 1, acc + :atomics.get(atomics_ref, index))
+  defp do_sum(atomics, index, acc) do
+    do_sum(atomics, index - 1, acc + :atomics.get(atomics, index))
   end
 
   @doc """
@@ -315,21 +327,21 @@ defmodule Matrax do
   def apply(%Matrax{} = matrax, fun) when is_function(fun, 1) or is_function(fun, 2) do
     fun_arity = Function.info(fun)[:arity]
 
-    do_apply(matrax.atomics_ref, matrax.columns, size(matrax), fun_arity, fun)
+    do_apply(matrax.atomics, matrax.columns, size(matrax), fun_arity, fun)
   end
 
   defp do_apply(_, _, 0, _, _), do: :ok
 
-  defp do_apply(atomics_ref, columns, index, fun_arity, fun) do
+  defp do_apply(atomics, columns, index, fun_arity, fun) do
     value =
       case fun_arity do
-        1 -> fun.(:atomics.get(atomics_ref, index))
-        2 -> fun.(:atomics.get(atomics_ref, index), index_to_position(columns, index))
+        1 -> fun.(:atomics.get(atomics, index))
+        2 -> fun.(:atomics.get(atomics, index), index_to_position(columns, index))
       end
 
-    :atomics.put(atomics_ref, index, value)
+    :atomics.put(atomics, index, value)
 
-    do_apply(atomics_ref, columns, index - 1, fun_arity, fun)
+    do_apply(atomics, columns, index - 1, fun_arity, fun)
   end
 
   @doc """
@@ -372,16 +384,16 @@ defmodule Matrax do
         false
 
       _else ->
-        do_member?(matrax.atomics_ref, size(matrax), integer)
+        do_member?(matrax.atomics, size(matrax), integer)
     end
   end
 
   defp do_member?(_, 0, _), do: false
 
-  defp do_member?(atomics_ref, index, integer) do
-    case :atomics.get(atomics_ref, index) do
+  defp do_member?(atomics, index, integer) do
+    case :atomics.get(atomics, index) do
       ^integer -> true
-      _else -> do_member?(atomics_ref, index - 1, integer)
+      _else -> do_member?(atomics, index - 1, integer)
     end
   end
 
@@ -398,36 +410,36 @@ defmodule Matrax do
       {:ok, Matrax.member?(matrax, int)}
     end
 
-    def slice(%Matrax{atomics_ref: atomics_ref} = matrax) do
+    def slice(%Matrax{atomics: atomics} = matrax) do
       {
         :ok,
         Matrax.size(matrax),
         fn start, length ->
-          do_slice(atomics_ref, start + 1, length)
+          do_slice(atomics, start + 1, length)
         end
       }
     end
 
     defp do_slice(_, _, 0), do: []
 
-    defp do_slice(atomics_ref, index, length) do
-      [:atomics.get(atomics_ref, index) | do_slice(atomics_ref, index + 1, length - 1)]
+    defp do_slice(atomics, index, length) do
+      [:atomics.get(atomics, index) | do_slice(atomics, index + 1, length - 1)]
     end
 
-    def reduce(%Matrax{atomics_ref: atomics_ref} = matrax, acc, fun) do
+    def reduce(%Matrax{atomics: atomics} = matrax, acc, fun) do
       size = Matrax.size(matrax)
 
-      do_reduce({atomics_ref, 0, size}, acc, fun)
+      do_reduce({atomics, 0, size}, acc, fun)
     end
 
     def do_reduce(_, {:halt, acc}, _fun), do: {:halted, acc}
     def do_reduce(tuple, {:suspend, acc}, fun), do: {:suspended, acc, &do_reduce(tuple, &1, fun)}
     def do_reduce({_, size, size}, {:cont, acc}, _fun), do: {:done, acc}
 
-    def do_reduce({atomics_ref, index, size}, {:cont, acc}, fun) do
+    def do_reduce({atomics, index, size}, {:cont, acc}, fun) do
       do_reduce(
-        {atomics_ref, index + 1, size},
-        fun.(:atomics.get(atomics_ref, index + 1), acc),
+        {atomics, index + 1, size},
+        fun.(:atomics.get(atomics, index + 1), acc),
         fun
       )
     end

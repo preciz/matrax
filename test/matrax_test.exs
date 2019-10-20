@@ -3,13 +3,13 @@ defmodule MatraxTest do
   doctest Matrax
 
   test "new returns struct" do
-    assert %Matrax{atomics_ref: atomics_ref, rows: 50, columns: 10} = Matrax.new(50, 10, signed: false)
+    assert %Matrax{atomics: atomics, rows: 50, columns: 10} = Matrax.new(50, 10, signed: false)
 
-    assert %{min: 0, size: 500} = :atomics.info(atomics_ref)
+    assert %{min: 0, size: 500} = :atomics.info(atomics)
 
-    assert %Matrax{atomics_ref: atomics_ref2, rows: 2, columns: 8} = Matrax.new(2, 8, signed: true)
+    assert %Matrax{atomics: atomics2, rows: 2, columns: 8} = Matrax.new(2, 8, signed: true)
 
-    assert %{min: -9_223_372_036_854_775_808, size: 16} = :atomics.info(atomics_ref2)
+    assert %{min: -9_223_372_036_854_775_808, size: 16} = :atomics.info(atomics2)
   end
 
   test "seeds & gets values" do
