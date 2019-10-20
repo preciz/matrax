@@ -182,6 +182,46 @@ defmodule Matrax do
   end
 
   @doc """
+  Subtracts `decr` from atomic at `position`.
+
+  ## Examples
+
+      iex> matrax = Matrax.new(10, 10)
+      iex> matrax |> Matrax.sub({0, 0}, 1)
+      :ok
+      iex> matrax |> Matrax.sub({0, 0}, 1)
+      :ok
+      iex> matrax |> Matrax.get({0, 0})
+      -2
+  """
+  @spec sub(t, position, integer) :: :ok
+  def sub(%Matrax{atomics: atomics} = matrax, position, decr) when is_integer(decr) do
+    index = position_to_index(matrax, position)
+
+    :atomics.sub(atomics, index, decr)
+  end
+
+  @doc """
+  Atomic subtraction and return of the result.
+
+  Subtracts `decr` from atomic at `position` and returns result.
+
+  ## Examples
+
+      iex> matrax = Matrax.new(10, 10)
+      iex> matrax |> Matrax.sub_get({0, 0}, 2)
+      -2
+      iex> matrax |> Matrax.sub_get({0, 0}, 2)
+      -4
+  """
+  @spec sub_get(t, position, integer) :: integer
+  def sub_get(%Matrax{atomics: atomics} = matrax, position, decr) when is_integer(decr) do
+    index = position_to_index(matrax, position)
+
+    :atomics.sub_get(atomics, index, decr)
+  end
+
+  @doc """
   Atomically compares the value at `position` with `expected` ,
   and if those are equal, sets value at `position` to `desired`.
 
