@@ -26,6 +26,8 @@ defmodule Matrax do
       false
   """
 
+  @compile {:inline, position_to_index: 2, index_to_position: 2, size: 1}
+
   @keys [:atomics, :rows, :columns, :min, :max, :signed, :transposed]
   @enforce_keys @keys
   defstruct @keys
