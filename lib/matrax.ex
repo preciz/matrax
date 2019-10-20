@@ -398,8 +398,8 @@ defmodule Matrax do
 
   ## Examples
 
-      iex> m = Matrax.new(5, 5, seed_fun: fn _, {row, col} -> row * col end)
-      iex> Matrax.to_list_of_lists(m)
+      iex> matrax = Matrax.new(5, 5, seed_fun: fn _, {row, col} -> row * col end)
+      iex> Matrax.to_list_of_lists(matrax)
       [
         [0, 0, 0, 0, 0],
         [0, 1, 2, 3, 4],
