@@ -93,7 +93,8 @@ defmodule Matrax do
       {0, 9}
   """
   @spec index_to_position(t, pos_integer) :: position
-  def index_to_position(%Matrax{columns: columns, transposed: false}, index) when is_integer(index) do
+  def index_to_position(%Matrax{columns: columns, transposed: false}, index)
+      when is_integer(index) do
     index = index - 1
 
     {div(index, columns), rem(index, columns)}
@@ -391,7 +392,7 @@ defmodule Matrax do
     do_apply(matrax, size(matrax), fun_arity, fun)
   end
 
-  defp do_apply(_,  0, _, _), do: :ok
+  defp do_apply(_, 0, _, _), do: :ok
 
   defp do_apply(%Matrax{atomics: atomics} = matrax, index, fun_arity, fun) do
     value =
