@@ -409,7 +409,7 @@ defmodule Matrax do
   end
 
   @doc """
-  Checks if `integer` exists within `matrax`.
+  Checks if `value` exists within `matrax`.
 
       iex> matrax = Matrax.new(5, 5, seed_fun: fn _, {row, col} -> row * col end)
       iex> matrax |> Matrax.member?(6)
@@ -418,13 +418,13 @@ defmodule Matrax do
       false
   """
   @spec member?(t, integer) :: boolean
-  def member?(%Matrax{min: min, max: max} = matrax, integer) when is_integer(integer) do
-    case integer do
-      i when i < min or i > max ->
+  def member?(%Matrax{min: min, max: max} = matrax, value) when is_integer(value) do
+    case value do
+      v when v < min or v > max ->
         false
 
       _else ->
-        do_member?(matrax.atomics, size(matrax), integer)
+        do_member?(matrax.atomics, size(matrax), value)
     end
   end
 
