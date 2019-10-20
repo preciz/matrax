@@ -2,6 +2,18 @@ defmodule Matrax do
   @moduledoc """
   Use `:atomics` as an M x N matrix.
 
+  [Erlang atomics documentation](http://erlang.org/doc/man/atomics.html)
+
+  ## Examples
+
+     iex> matrax = Matrax.new(100, 100) # 100 x 100 matrix
+     iex> matrax |> Matrax.put({0, 0}, 10) # add 10 to position {0, 0}
+     iex> matrax |> Matrax.get({0, 0})
+     10
+     iex> matrax |> Matrax.add({0, 0}, 80)
+     iex> matrax |> Matrax.get({0, 0})
+     90
+
   ## Enumerable protocol
 
   `Matrax` implements the Enumerable protocol, so all Enum functions can be used:
@@ -31,15 +43,14 @@ defmodule Matrax do
   Returns a new `%Matrax{}` struct.
 
   ## Options
-    * `:seed_fun` - a function that receives a 2-tuple `{row, col}`
-  as argument and returns the initial value for the position
+    * `:seed_fun` - a function to seed all positions.  See `apply/2` for further information.
     * `:signed` - whether to have signed or unsigned 64bit integers
 
   ## Examples
 
        Matrax.new(10, 5) # 10 x 5 matrix
        Matrax.new(10, 5, signed: false) # unsigned integers
-       Matrax.new(10, 5, seed_fun: fn {row, col} -> row * col end) # seed values
+       Matrax.new(10, 5, seed_fun: fn _, {row, col} -> row * col end) # seed values
   """
   @spec new(pos_integer, pos_integer, list) :: t
   def new(rows, columns, options \\ []) when is_integer(rows) and is_integer(columns) do
@@ -53,13 +64,7 @@ defmodule Matrax do
     matrax = %Matrax{atomics_ref: atomics_ref, rows: rows, columns: columns, min: min, max: max}
 
     if seed_fun do
-      for index <- 1..(rows * columns) do
-        position = index_to_position(matrax, index)
-
-        value = seed_fun.(position)
-
-        put(matrax, position, value)
-      end
+      Matrax.apply(matrax, seed_fun)
     end
 
     matrax
@@ -145,14 +150,20 @@ defmodule Matrax do
 
       iex> matrax = Matrax.new(10, 10)
       iex> matrax |> Matrax.add({0, 0}, 2)
-      2
+      :ok
       iex> matrax |> Matrax.add({0, 0}, 2)
+      :ok
+      iex> matrax |> Matrax.get({0, 0})
       4
-      iex> matrax |> Matrax.add({0, 0}, -8)
-      -4
   """
   @spec add(t, position, integer) :: integer
   def add(%Matrax{atomics_ref: atomics_ref} = matrax, position, incr) when is_integer(incr) do
+    index = position_to_index(matrax, position)
+
+    :atomics.add(atomics_ref, index, incr)
+  end
+
+  def add_get(%Matrax{atomics_ref: atomics_ref} = matrax, position, incr) when is_integer(incr) do
     index = position_to_index(matrax, position)
 
     :atomics.add_get(atomics_ref, index, incr)
@@ -244,7 +255,7 @@ defmodule Matrax do
 
   ## Examples
 
-      iex> matrax = Matrax.new(10, 10, seed_fun: fn {row, col} -> row * col end)
+      iex> matrax = Matrax.new(10, 10, seed_fun: fn _, {row, col} -> row * col end)
       iex> matrax |> Matrax.max()
       81
   """
@@ -266,7 +277,7 @@ defmodule Matrax do
 
   ## Examples
 
-      iex> matrax = Matrax.new(10, 10, seed_fun: fn {row, col} -> row * col end)
+      iex> matrax = Matrax.new(10, 10, seed_fun: fn _, {row, col} -> row * col end)
       iex> matrax |> Matrax.sum()
       2025
   """
@@ -301,26 +312,24 @@ defmodule Matrax do
       81
   """
   @spec apply(t, (integer -> integer) | (integer, position -> integer)) :: :ok
-  def apply(%Matrax{atomics_ref: atomics_ref, columns: columns} = matrax, fun) when is_function(fun, 1) or is_function(fun, 2) do
-    last_index = size(matrax)
-
+  def apply(%Matrax{} = matrax, fun) when is_function(fun, 1) or is_function(fun, 2) do
     fun_arity = Function.info(fun)[:arity]
 
-    do_apply(atomics_ref, fun_arity, columns, last_index, fun)
+    do_apply(matrax.atomics_ref, matrax.columns, size(matrax), fun_arity, fun)
   end
 
-  defp do_apply(_, _, _, 0, _), do: :ok
+  defp do_apply(_, _, 0, _, _), do: :ok
 
-  defp do_apply(atomics_ref, fun_arity, n, index, fun) do
+  defp do_apply(atomics_ref, columns, index, fun_arity, fun) do
     value =
       case fun_arity do
         1 -> fun.(:atomics.get(atomics_ref, index))
-        2 -> fun.(:atomics.get(atomics_ref, index), index_to_position(n, index))
+        2 -> fun.(:atomics.get(atomics_ref, index), index_to_position(columns, index))
       end
 
     :atomics.put(atomics_ref, index, value)
 
-    do_apply(atomics_ref, fun_arity, n, index - 1, fun)
+    do_apply(atomics_ref, columns, index - 1, fun_arity, fun)
   end
 
   @doc """
@@ -328,7 +337,7 @@ defmodule Matrax do
 
   ## Examples
 
-      iex> m = Matrax.new(5, 5, seed_fun: fn {row, col} -> row * col end)
+      iex> m = Matrax.new(5, 5, seed_fun: fn _, {row, col} -> row * col end)
       iex> Matrax.to_list_of_lists(m)
       [
         [0, 0, 0, 0, 0],
@@ -347,32 +356,33 @@ defmodule Matrax do
     end
   end
 
-  def member?(%Matrax{atomics_ref: atomics_ref} = matrax, int) when is_integer(int) do
-    %{min: min, max: max, size: size} = :atomics.info(matrax.atomics_ref)
+  @doc """
+  Checks if `integer` exists within `matrax`.
 
-    case int do
-      i when i < min ->
-        false
-
-      i when i > max ->
+      iex> matrax = Matrax.new(5, 5, seed_fun: fn _, {row, col} -> row * col end)
+      iex> matrax |> Matrax.member?(6)
+      true
+      iex> matrax |> Matrax.member?(100)
+      false
+  """
+  @spec member?(t, integer) :: boolean
+  def member?(%Matrax{min: min, max: max} = matrax, integer) when is_integer(integer) do
+    case integer do
+      i when i < min or i > max ->
         false
 
       _else ->
-        do_member?(atomics_ref, int, size, false)
+        do_member?(matrax.atomics_ref, size(matrax), integer)
     end
   end
 
-  defp do_member?(_, _, _, true), do: true
+  defp do_member?(_, 0, _), do: false
 
-  defp do_member?(_, _, 0, false), do: false
-
-  defp do_member?(atomics_ref, int, index, false) do
-    do_member?(
-      atomics_ref,
-      int,
-      index - 1,
-      :atomics.get(atomics_ref, index) == int
-    )
+  defp do_member?(atomics_ref, index, integer) do
+    case :atomics.get(atomics_ref, index) do
+      ^integer -> true
+      _else -> do_member?(atomics_ref, index - 1, integer)
+    end
   end
 
   defimpl Enumerable do
