@@ -26,7 +26,7 @@ defmodule Matrax do
       false
   """
 
-  @keys [:atomics, :rows, :columns, :min, :max, :signed]
+  @keys [:atomics, :rows, :columns, :min, :max, :signed, :transposed]
   @enforce_keys @keys
   defstruct @keys
 
@@ -36,7 +36,8 @@ defmodule Matrax do
           columns: pos_integer,
           min: integer,
           max: pos_integer,
-          signed: boolean
+          signed: boolean,
+          transposed: boolean
         }
 
   @type position :: {row :: non_neg_integer, col :: non_neg_integer}
@@ -69,7 +70,8 @@ defmodule Matrax do
       columns: columns,
       min: min,
       max: max,
-      signed: signed
+      signed: signed,
+      transposed: false
     }
 
     if seed_fun do
@@ -89,14 +91,16 @@ defmodule Matrax do
       {0, 9}
   """
   @spec index_to_position(t, pos_integer) :: position
-  def index_to_position(%Matrax{columns: columns}, index) when is_integer(index) do
-    index_to_position(columns, index)
-  end
-
-  def index_to_position(columns, index) do
+  def index_to_position(%Matrax{columns: columns, transposed: false}, index) when is_integer(index) do
     index = index - 1
 
     {div(index, columns), rem(index, columns)}
+  end
+
+  def index_to_position(%Matrax{rows: rows, transposed: true}, index) when is_integer(index) do
+    index = index - 1
+
+    {rem(index, rows), div(index, rows)}
   end
 
   @doc """
@@ -112,8 +116,14 @@ defmodule Matrax do
       5
   """
   @spec position_to_index(t, position) :: pos_integer
-  def position_to_index(%Matrax{columns: columns}, {row, col}) do
+  def position_to_index(%Matrax{rows: rows, columns: columns, transposed: false}, {row, col})
+      when row <= rows and col <= columns do
     row * columns + col + 1
+  end
+
+  def position_to_index(%Matrax{rows: rows, columns: columns, transposed: true}, {row, col})
+      when row <= rows and col <= columns do
+    col * rows + row + 1
   end
 
   @doc """
@@ -376,21 +386,21 @@ defmodule Matrax do
   def apply(%Matrax{} = matrax, fun) when is_function(fun, 1) or is_function(fun, 2) do
     fun_arity = Function.info(fun)[:arity]
 
-    do_apply(matrax.atomics, matrax.columns, size(matrax), fun_arity, fun)
+    do_apply(matrax, size(matrax), fun_arity, fun)
   end
 
-  defp do_apply(_, _, 0, _, _), do: :ok
+  defp do_apply(_,  0, _, _), do: :ok
 
-  defp do_apply(atomics, columns, index, fun_arity, fun) do
+  defp do_apply(%Matrax{atomics: atomics} = matrax, index, fun_arity, fun) do
     value =
       case fun_arity do
         1 -> fun.(:atomics.get(atomics, index))
-        2 -> fun.(:atomics.get(atomics, index), index_to_position(columns, index))
+        2 -> fun.(:atomics.get(atomics, index), index_to_position(matrax, index))
       end
 
     :atomics.put(atomics, index, value)
 
-    do_apply(atomics, columns, index - 1, fun_arity, fun)
+    do_apply(matrax, index - 1, fun_arity, fun)
   end
 
   @doc """
@@ -475,6 +485,47 @@ defmodule Matrax do
     :atomics.put(new_atomics, index, value)
 
     do_copy(atomics, new_atomics, index - 1)
+  end
+
+  @doc """
+  Only modifies the struct, it doesn't move or mutate data.
+
+  Given `transposed: true` the access path to positions
+  will be modified during execution in `position_to_index/2`.
+
+  For a real transposed matrix with data modification
+  you can first `transpose/1` then `copy/1`. `copy/1` creates a
+  new `%Matrax{}` struct based on the transposed matrax.
+
+  ## Examples
+
+      iex> matrax = Matrax.new(7, 4, seed_fun: fn _, {row, col} -> row + col end)
+      iex> matrax |> Matrax.to_list_of_lists()
+      [
+          [0, 1, 2, 3],
+          [1, 2, 3, 4],
+          [2, 3, 4, 5],
+          [3, 4, 5, 6],
+          [4, 5, 6, 7],
+          [5, 6, 7, 8],
+          [6, 7, 8, 9]
+      ]
+      iex> matrax |> Matrax.transpose() |> Matrax.to_list_of_lists()
+      [
+          [0, 1, 2, 3, 4, 5, 6],
+          [1, 2, 3, 4, 5, 6, 7],
+          [2, 3, 4, 5, 6, 7, 8],
+          [3, 4, 5, 6, 7, 8, 9]
+      ]
+  """
+  @spec transpose(t) :: t
+  def transpose(%Matrax{} = matrax) do
+    %Matrax{
+      matrax
+      | rows: matrax.columns,
+        columns: matrax.rows,
+        transposed: not matrax.transposed
+    }
   end
 
   defimpl Enumerable do
