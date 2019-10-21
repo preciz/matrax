@@ -15,7 +15,7 @@ defmodule Matrax.MixProject do
       package: package(),
       homepage_url: @github,
       description: """
-      Use `:atomics` as an M x N matrix.
+      Use :atomics as an M x N matrix.
       """
     ]
   end
