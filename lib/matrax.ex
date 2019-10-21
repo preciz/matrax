@@ -26,7 +26,7 @@ defmodule Matrax do
       false
   """
 
-  @compile {:inline, position_to_index: 2, index_to_position: 2, size: 1}
+  @compile {:inline, position_to_index: 2, index_to_position: 2, count: 1}
 
   @keys [:atomics, :rows, :columns, :min, :max, :signed, :transposed]
   @enforce_keys @keys
@@ -287,18 +287,18 @@ defmodule Matrax do
   end
 
   @doc """
-  Returns size (rows * columns) of matrax.
+  Returns count of values (rows * columns).
 
   ## Examples
 
       iex> matrax = Matrax.new(5, 5)
-      iex> Matrax.size(matrax)
+      iex> Matrax.count(matrax)
       25
-      iex> Matrax.size(matrax) == :atomics.info(matrax.atomics).size
+      iex> Matrax.count(matrax) == :atomics.info(matrax.atomics).size
       true
   """
-  @spec size(t) :: pos_integer
-  def size(%Matrax{rows: rows, columns: columns}) do
+  @spec count(t) :: pos_integer
+  def count(%Matrax{rows: rows, columns: columns}) do
     rows * columns
   end
 
@@ -313,7 +313,7 @@ defmodule Matrax do
   """
   @spec min(t) :: integer
   def min(%Matrax{atomics: atomics} = matrax) do
-    last_index = size(matrax)
+    last_index = count(matrax)
 
     do_min(atomics, last_index - 1, :atomics.get(atomics, last_index))
   end
@@ -335,7 +335,7 @@ defmodule Matrax do
   """
   @spec max(t) :: integer
   def max(%Matrax{atomics: atomics} = matrax) do
-    last_index = size(matrax)
+    last_index = count(matrax)
 
     do_max(atomics, last_index - 1, :atomics.get(atomics, last_index))
   end
@@ -357,7 +357,7 @@ defmodule Matrax do
   """
   @spec sum(t) :: integer
   def sum(%Matrax{atomics: atomics} = matrax) do
-    last_index = size(matrax)
+    last_index = count(matrax)
 
     do_sum(atomics, last_index - 1, :atomics.get(atomics, last_index))
   end
@@ -389,7 +389,7 @@ defmodule Matrax do
   def apply(%Matrax{} = matrax, fun) when is_function(fun, 1) or is_function(fun, 2) do
     fun_arity = Function.info(fun)[:arity]
 
-    do_apply(matrax, size(matrax), fun_arity, fun)
+    do_apply(matrax, count(matrax), fun_arity, fun)
   end
 
   defp do_apply(_, 0, _, _), do: :ok
@@ -462,7 +462,7 @@ defmodule Matrax do
         false
 
       _else ->
-        do_member?(matrax.atomics, size(matrax), value)
+        do_member?(matrax.atomics, count(matrax), value)
     end
   end
 
@@ -492,11 +492,11 @@ defmodule Matrax do
   """
   @spec copy(t) :: t
   def copy(%Matrax{} = matrax) do
-    new_atomics = :atomics.new(size(matrax), signed: matrax.signed)
+    new_atomics = :atomics.new(count(matrax), signed: matrax.signed)
 
     matrax_copy = %Matrax{matrax | atomics: new_atomics, transposed: false}
 
-    do_copy(matrax, matrax_copy, size(matrax))
+    do_copy(matrax, matrax_copy, count(matrax))
 
     matrax_copy
   end
@@ -560,7 +560,7 @@ defmodule Matrax do
     alias Matrax
 
     def count(%Matrax{} = matrax) do
-      {:ok, Matrax.size(matrax)}
+      {:ok, Matrax.count(matrax)}
     end
 
     def member?(%Matrax{} = matrax, int) do
@@ -570,7 +570,7 @@ defmodule Matrax do
     def slice(%Matrax{atomics: atomics} = matrax) do
       {
         :ok,
-        Matrax.size(matrax),
+        Matrax.count(matrax),
         fn start, length ->
           do_slice(atomics, start + 1, length)
         end
@@ -584,18 +584,16 @@ defmodule Matrax do
     end
 
     def reduce(%Matrax{atomics: atomics} = matrax, acc, fun) do
-      size = Matrax.size(matrax)
-
-      do_reduce({atomics, 0, size}, acc, fun)
+      do_reduce({atomics, 0, Matrax.count(matrax)}, acc, fun)
     end
 
     def do_reduce(_, {:halt, acc}, _fun), do: {:halted, acc}
     def do_reduce(tuple, {:suspend, acc}, fun), do: {:suspended, acc, &do_reduce(tuple, &1, fun)}
-    def do_reduce({_, size, size}, {:cont, acc}, _fun), do: {:done, acc}
+    def do_reduce({_, same, same}, {:cont, acc}, _fun), do: {:done, acc}
 
-    def do_reduce({atomics, index, size}, {:cont, acc}, fun) do
+    def do_reduce({atomics, index, count}, {:cont, acc}, fun) do
       do_reduce(
-        {atomics, index + 1, size},
+        {atomics, index + 1, count},
         fun.(:atomics.get(atomics, index + 1), acc),
         fun
       )
