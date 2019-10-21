@@ -1,28 +1,48 @@
 defmodule Matrax.MixProject do
   use Mix.Project
 
+  @version "0.1.0"
+  @github "https://github.com/preciz/matrax"
+
   def project do
     [
       app: :matrax,
-      version: "0.1.0",
-      elixir: "~> 1.9",
+      version: @version,
+      elixir: "~> 1.7",
       start_permanent: Mix.env() == :prod,
-      deps: deps()
+      deps: deps(),
+      docs: docs(),
+      package: package(),
+      homepage_url: @github,
+      description: """
+      Use `:atomics` as an M x N matrix.
+      """
     ]
   end
 
-  # Run "mix help compile.app" to learn about applications.
   def application do
-    [
-      extra_applications: [:logger]
-    ]
+    []
   end
 
-  # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      # {:dep_from_hexpm, "~> 0.3.0"},
-      # {:dep_from_git, git: "https://github.com/elixir-lang/my_dep.git", tag: "0.1.0"}
+      {:ex_doc, "~> 0.21", only: :dev, runtime: false},
+    ]
+  end
+
+  defp docs do
+    [
+      main: "Matrax",
+      source_ref: "v#{@version}",
+      source_url: @github,
+    ]
+  end
+
+  defp package do
+    [
+      maintainers: ["Barna Kovacs"],
+      licenses: ["MIT"],
+      links: %{"GitHub" => @github}
     ]
   end
 end
