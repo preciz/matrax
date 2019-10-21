@@ -17,8 +17,7 @@ end
 ## API summary
 See [https://hexdocs.pm/matrax](https://hexdocs.pm/matrax) for full documentation.
 
-### Abit.Matrix - use `:atomics` as an M x N matrix
-* `Matrax.new/2` - Create new matrix %Abit.Matrix{} struct.
+* `Matrax.new/2` - Create new matrix.
 * `Matrax.get/2` - Returns the integer at the given position.
 * `Matrax.put/3` - Puts the given integer into the given position.
 * `Matrax.add/3` - Adds the given increment to the value at given position atomically.
