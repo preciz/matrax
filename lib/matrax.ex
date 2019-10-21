@@ -6,13 +6,13 @@ defmodule Matrax do
 
   ## Examples
 
-     iex> matrax = Matrax.new(100, 100) # 100 x 100 matrix
-     iex> matrax |> Matrax.put({0, 0}, 10) # add 10 to position {0, 0}
-     iex> matrax |> Matrax.get({0, 0})
-     10
-     iex> matrax |> Matrax.add({0, 0}, 80)
-     iex> matrax |> Matrax.get({0, 0})
-     90
+      iex> matrax = Matrax.new(100, 100) # 100 x 100 matrix
+      iex> matrax |> Matrax.put({0, 0}, 10) # add 10 to position {0, 0}
+      iex> matrax |> Matrax.get({0, 0})
+      10
+      iex> matrax |> Matrax.add({0, 0}, 80)
+      iex> matrax |> Matrax.get({0, 0})
+      90
 
   ## Enumerable protocol
 
