@@ -462,6 +462,21 @@ defmodule Matrax do
   end
 
   @doc """
+  Converts given column index of `%Matrax{}` to list.
+
+  ## Examples
+      iex> matrax = Matrax.new(5, 5, seed_fun: fn _, {row, col} -> row * col end)
+      iex> matrax |> Matrax.column_to_list(2)
+      [0, 2, 4, 6, 8]
+  """
+  @spec column_to_list(t, non_neg_integer) :: list(integer)
+  def column_to_list(%Matrax{columns: columns} = matrax, col) when col in 0..(columns - 1) do
+    for row <- 0..(matrax.rows - 1) do
+      get(matrax, {row, col})
+    end
+  end
+
+  @doc """
   Checks if `value` exists within `matrax`.
 
       iex> matrax = Matrax.new(5, 5, seed_fun: fn _, {row, col} -> row * col end)
