@@ -554,6 +554,56 @@ defmodule Matrax do
     }
   end
 
+  @doc """
+  Returns a submatrix.
+
+  Creates a new `:atomics` and copies values.
+
+  Ranges are inclusive and 0 based.
+
+  ## Examples
+
+      iex> matrax = Matrax.new(7, 4, seed_fun: fn _, {row, col} -> row + col end)
+      iex> matrax |> Matrax.to_list_of_lists()
+      [
+          [0, 1, 2, 3],
+          [1, 2, 3, 4],
+          [2, 3, 4, 5],
+          [3, 4, 5, 6],
+          [4, 5, 6, 7],
+          [5, 6, 7, 8],
+          [6, 7, 8, 9]
+      ]
+      iex> matrax |> Matrax.submatrix(0..3, 0..3) |> Matrax.to_list_of_lists()
+      [
+          [0, 1, 2, 3],
+          [1, 2, 3, 4],
+          [2, 3, 4, 5],
+          [3, 4, 5, 6]
+      ]
+  """
+  @spec submatrix(t, Range.t(), Range.t()) :: t | no_return
+  def submatrix(%Matrax{rows: rows, columns: columns} = matrax, row_from..row_to, col_from..col_to) when row_from in 0..(rows - 1) and row_to in row_from..(rows - 1) and col_from in 0..(columns - 1) and col_to in col_from..(columns - 1) do
+    submatrix_rows = (row_to + 1) - row_from
+    submatrix_columns = (col_to + 1) - col_from
+
+    submatrix_atomics = :atomics.new(submatrix_rows * submatrix_columns, signed: matrax.signed)
+
+    submatrax = %Matrax{
+      atomics: submatrix_atomics,
+      rows: submatrix_rows,
+      columns: submatrix_columns,
+      min: matrax.min,
+      max: matrax.max,
+      signed: matrax.signed,
+      transposed: false
+    }
+
+    Matrax.apply(submatrax, fn _, {row, col} -> get(matrax, {row + row_from, col + col_from}) end)
+
+    submatrax
+  end
+
   defimpl Enumerable do
     @moduledoc false
 
