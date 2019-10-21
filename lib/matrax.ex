@@ -583,9 +583,15 @@ defmodule Matrax do
       ]
   """
   @spec submatrix(t, Range.t(), Range.t()) :: t | no_return
-  def submatrix(%Matrax{rows: rows, columns: columns} = matrax, row_from..row_to, col_from..col_to) when row_from in 0..(rows - 1) and row_to in row_from..(rows - 1) and col_from in 0..(columns - 1) and col_to in col_from..(columns - 1) do
-    submatrix_rows = (row_to + 1) - row_from
-    submatrix_columns = (col_to + 1) - col_from
+  def submatrix(
+        %Matrax{rows: rows, columns: columns} = matrax,
+        row_from..row_to,
+        col_from..col_to
+      )
+      when row_from in 0..(rows - 1) and row_to in row_from..(rows - 1) and
+             col_from in 0..(columns - 1) and col_to in col_from..(columns - 1) do
+    submatrix_rows = row_to + 1 - row_from
+    submatrix_columns = col_to + 1 - col_from
 
     submatrix_atomics = :atomics.new(submatrix_rows * submatrix_columns, signed: matrax.signed)
 
