@@ -423,7 +423,7 @@ defmodule Matrax do
   end
 
   @doc """
-  Converts `%Matrax{}` struct to list of lists.
+  Converts `%Matrax{}` to list of lists.
 
   ## Examples
 
@@ -587,7 +587,8 @@ defmodule Matrax do
   @doc """
   Returns a submatrix.
 
-  Creates a new `:atomics` and copies values.
+  Creates a new `:atomics` for the submatrix
+  and copies values over.
 
   Ranges are inclusive and 0 based.
 
