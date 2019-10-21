@@ -407,6 +407,22 @@ defmodule Matrax do
   end
 
   @doc """
+  Converts `%Matrax{}` to a flat list.
+
+  ## Examples
+
+      iex> matrax = Matrax.new(3, 3, seed_fun: fn _, {row, col} -> row * col end)
+      iex> Matrax.to_list(matrax)
+      [0, 0, 0, 0, 1, 2, 0, 2, 4]
+  """
+  @spec to_list(t) :: list(integer)
+  def to_list(%Matrax{rows: rows, columns: columns} = matrax) do
+    for row <- 0..(rows - 1), col <- 0..(columns - 1) do
+      get(matrax, {row, col})
+    end
+  end
+
+  @doc """
   Converts `%Matrax{}` struct to list of lists.
 
   ## Examples
