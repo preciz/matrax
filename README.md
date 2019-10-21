@@ -2,6 +2,20 @@
 
 Use `:atomics` as an M x N matrix.
 
+```elixir
+iex> matrax = Matrax.new(7, 4, seed_fun: fn _, {row, col} -> row + col end)
+iex> matrax |> Matrax.to_list_of_lists()
+[
+    [0, 1, 2, 3],
+    [1, 2, 3, 4],
+    [2, 3, 4, 5],
+    [3, 4, 5, 6],
+    [4, 5, 6, 7],
+    [5, 6, 7, 8],
+    [6, 7, 8, 9]
+]
+```
+
 ## Installation
 
 Add `matrax` to your list of dependencies in `mix.exs`:
