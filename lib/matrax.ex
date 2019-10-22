@@ -645,6 +645,7 @@ defmodule Matrax do
   Reshapes `matrax` to the given `rows` & `cols`.
 
   ## Examples
+
       iex> matrax = Matrax.new(4, 3, seed_fun: fn _ -> 1 end)
       iex> matrax |> Matrax.to_list_of_lists()
       [
