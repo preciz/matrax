@@ -590,7 +590,7 @@ defmodule Matrax do
   Creates a new `:atomics` for the submatrix
   and copies values over.
 
-  Ranges are inclusive and 0 based.
+  Ranges are inclusive.
 
   ## Examples
 
