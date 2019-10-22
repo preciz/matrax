@@ -641,6 +641,30 @@ defmodule Matrax do
     submatrax
   end
 
+  @doc """
+  Reshapes `matrax` to the given `rows` & `cols`.
+
+  ## Examples
+      iex> matrax = Matrax.new(4, 3, seed_fun: fn _ -> 1 end)
+      iex> matrax |> Matrax.to_list_of_lists()
+      [
+          [1, 1, 1],
+          [1, 1, 1],
+          [1, 1, 1],
+          [1, 1, 1]
+      ]
+      iex> matrax |> Matrax.reshape(2, 6) |> Matrax.to_list_of_lists()
+      [
+          [1, 1, 1, 1, 1, 1],
+          [1, 1, 1, 1, 1, 1]
+      ]
+  """
+  @spec reshape(t, pos_integer, pos_integer) :: t
+  def reshape(%Matrax{rows: rows, columns: columns} = matrax, desired_rows, desired_columns)
+      when rows * columns == desired_rows * desired_columns do
+    %Matrax{matrax | rows: desired_rows, columns: desired_columns}
+  end
+
   defimpl Enumerable do
     @moduledoc false
 
