@@ -23,7 +23,7 @@ Add `matrax` to your list of dependencies in `mix.exs`:
 ```elixir
 def deps do
   [
-    {:matrax, "~> 0.1.0"}
+    {:matrax, "~> 0.1"}
   ]
 end
 ```
