@@ -821,20 +821,22 @@ defmodule Matrax do
       {:ok, Matrax.member?(matrax, int)}
     end
 
-    def slice(%Matrax{atomics: atomics} = matrax) do
+    def slice(%Matrax{} = matrax) do
       {
         :ok,
         Matrax.count(matrax),
         fn start, length ->
-          do_slice(atomics, start + 1, length)
+          do_slice(matrax, start + 1, length)
         end
       }
     end
 
     defp do_slice(_, _, 0), do: []
 
-    defp do_slice(atomics, index, length) do
-      [:atomics.get(atomics, index) | do_slice(atomics, index + 1, length - 1)]
+    defp do_slice(matrax, index, length) do
+      position = Matrax.index_to_position(matrax, index)
+
+      [Matrax.get(matrax, position) | do_slice(matrax, index + 1, length - 1)]
     end
 
     def reduce(%Matrax{} = matrax, acc, fun) do
