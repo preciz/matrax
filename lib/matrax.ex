@@ -447,6 +447,7 @@ defmodule Matrax do
   position tuple as the second argument.
 
   ## Examples
+
       iex> matrax = Matrax.new(10, 10)
       iex> matrax |> Matrax.apply(fn int -> int + 2 end)
       iex> matrax |> Matrax.get({0, 0})
@@ -523,6 +524,7 @@ defmodule Matrax do
   Converts given row index of `%Matrax{}` to list.
 
   ## Examples
+
       iex> matrax = Matrax.new(5, 5, seed_fun: fn _, {row, col} -> row * col end)
       iex> matrax |> Matrax.row_to_list(2)
       [0, 2, 4, 6, 8]
@@ -538,6 +540,7 @@ defmodule Matrax do
   Converts given column index of `%Matrax{}` to list.
 
   ## Examples
+
       iex> matrax = Matrax.new(5, 5, seed_fun: fn _, {row, col} -> row * col end)
       iex> matrax |> Matrax.column_to_list(2)
       [0, 2, 4, 6, 8]
@@ -551,6 +554,8 @@ defmodule Matrax do
 
   @doc """
   Checks if `value` exists within `matrax`.
+
+  ## Examples
 
       iex> matrax = Matrax.new(5, 5, seed_fun: fn _, {row, col} -> row * col end)
       iex> matrax |> Matrax.member?(6)
@@ -586,6 +591,7 @@ defmodule Matrax do
   can be used to finish the access-path only changes
   by the `transpose/1`, `submatrix/3`, `reshape/3` functions.
 
+  ## Examples
 
       iex> matrax = Matrax.new(10, 10)
       iex> matrax |> Matrax.put({0, 0}, -9)
