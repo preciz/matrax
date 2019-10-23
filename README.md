@@ -53,6 +53,8 @@ See [https://hexdocs.pm/matrax](https://hexdocs.pm/matrax) for full documentatio
 * `Matrax.column_to_list/2` - Converts column at given index of matrix to list.
 * `Matrax.copy/1` - Returns a copy of the matrix with a new atomics reference. Can be used to finish access path only modifications.
 * `Matrax.transpose/1` - Transposes the given matrix. (access path modification only)
+* `Matrax.flip_lr/1` - Flips the given matrix vertically. (access path modification only)
+* `Matrax.flip_ud/1` - Flips the given matrix horizontally. (access path modification only)
 * `Matrax.submatrix/3` - Returns a new submatrix. (access path modification only)
 * `Matrax.reshape/3` Reshapes matrix. (access path modification only)
 * `Matrax.diagonal/1` Returns diagonal of matrix. (access path modification only)
