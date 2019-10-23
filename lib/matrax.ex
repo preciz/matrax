@@ -209,6 +209,19 @@ defmodule Matrax do
     )
   end
 
+  def position_to_index(
+        %Matrax{
+          rows: rows,
+          changes: [:flip_ud | changes_tl]
+        } = matrax,
+        {row, col}
+      ) do
+    position_to_index(
+      %Matrax{matrax | changes: changes_tl},
+      {rows - 1 - row, col}
+    )
+  end
+
   defp position_to_index(columns, row, col) do
     row * columns + col + 1
   end
@@ -895,6 +908,40 @@ defmodule Matrax do
 
   def flip_lr(%Matrax{} = matrax) do
     %Matrax{matrax | changes: [:flip_lr | matrax.changes]}
+  end
+
+  @doc """
+  Flip rows of matrix in the up-down direction (horizontal axis).
+
+  After `flip_ud/1` the access path to positions will be
+  modified during execution in `position_to_index/2`.
+
+  If you want to get a new `:atomics` with mofified data
+  use the `copy/1` function which applies the `:changes`.
+
+  ## Examples
+
+      iex> matrax = Matrax.new(3, 4, seed_fun: fn _, {row, _col} -> row end)
+      iex> matrax |> Matrax.to_list_of_lists()
+      [
+          [0, 0, 0, 0],
+          [1, 1, 1, 1],
+          [2, 2, 2, 2]
+      ]
+      iex> matrax |> Matrax.flip_ud() |> Matrax.to_list_of_lists()
+      [
+          [2, 2, 2, 2],
+          [1, 1, 1, 1],
+          [0, 0, 0, 0]
+      ]
+  """
+  @spec flip_ud(t) :: t
+  def flip_ud(%Matrax{changes: [:flip_ud | changes_tl]} = matrax) do
+    %Matrax{matrax | changes: changes_tl}
+  end
+
+  def flip_ud(%Matrax{} = matrax) do
+    %Matrax{matrax | changes: [:flip_ud | matrax.changes]}
   end
 
   defimpl Enumerable do
