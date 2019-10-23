@@ -1,6 +1,6 @@
 defmodule Matrax do
   @moduledoc """
-  Use `:atomics` as an M x N matrix.
+  A matrix library in pure Elixir based on `atomics`.
 
   [Erlang atomics documentation](http://erlang.org/doc/man/atomics.html)
 
