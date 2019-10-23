@@ -15,7 +15,7 @@ defmodule Matrax.MixProject do
       package: package(),
       homepage_url: @github,
       description: """
-      Use :atomics as an M x N matrix.
+      A fast matrix library in pure Elixir based on `atomics`.
       """
     ]
   end

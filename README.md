@@ -1,6 +1,6 @@
 # Matrax
 
-Use `:atomics` as an M x N matrix.
+A fast matrix library in pure Elixir based on `atomics`.
 
 ```elixir
 iex> matrax = Matrax.new(7, 4, seed_fun: fn _, {row, col} -> row + col end)
