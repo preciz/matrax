@@ -683,9 +683,9 @@ defmodule Matrax do
   @spec diagonal(t) :: t
   def diagonal(%Matrax{} = matrax) do
     %Matrax{
-      matrax |
-      rows: 1,
-      changes: [{:diagonal, matrax.rows} | matrax.changes]
+      matrax
+      | rows: 1,
+        changes: [{:diagonal, matrax.rows} | matrax.changes]
     }
   end
 
@@ -838,7 +838,8 @@ defmodule Matrax do
     case value do
       v when v < min or v > max ->
         nil
-      _else  ->
+
+      _else ->
         do_find(matrax, 1, count(matrax) + 1, value)
     end
   end
@@ -931,6 +932,7 @@ defmodule Matrax do
 
     def do_reduce({matrax, index, count}, {:cont, acc}, fun) do
       position = Matrax.index_to_position(matrax, index + 1)
+
       do_reduce(
         {matrax, index + 1, count},
         fun.(Matrax.get(matrax, position), acc),
