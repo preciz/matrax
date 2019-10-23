@@ -139,7 +139,11 @@ defmodule Matrax do
   end
 
   def position_to_index(
-        %Matrax{changes: [{:submatrix, old_rows, old_columns, row_from.._row_to, col_from.._col_to} | changes_tl]} = matrax,
+        %Matrax{
+          changes: [
+            {:submatrix, old_rows, old_columns, row_from.._row_to, col_from.._col_to} | changes_tl
+          ]
+        } = matrax,
         {row, col}
       ) do
     position_to_index(
@@ -642,12 +646,12 @@ defmodule Matrax do
     submatrix_rows = row_to + 1 - row_from
     submatrix_columns = col_to + 1 - col_from
 
-     %Matrax{
-       matrax |
-       rows: submatrix_rows,
-       columns: submatrix_columns,
-       changes: [{:submatrix, rows, columns, row_range, col_range} | matrax.changes]
-     }
+    %Matrax{
+      matrax
+      | rows: submatrix_rows,
+        columns: submatrix_columns,
+        changes: [{:submatrix, rows, columns, row_range, col_range} | matrax.changes]
+    }
   end
 
   @doc """
