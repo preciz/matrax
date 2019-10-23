@@ -866,7 +866,7 @@ defmodule Matrax do
   @doc """
   Flip columns of matrix in the left-right direction (vertical axis).
 
-  After `flip_lr/3` the access path to positions will be
+  After `flip_lr/1` the access path to positions will be
   modified during execution in `position_to_index/2`.
 
   If you want to get a new `:atomics` with mofified data
