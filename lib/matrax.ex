@@ -690,7 +690,7 @@ defmodule Matrax do
           [7, 8, 9]
       ]
   """
-  @spec submatrix(t, Range.t(), Range.t()) :: t | no_return
+  @spec submatrix(t, Range.t(), Range.t()) :: t
   def submatrix(
         %Matrax{rows: rows, columns: columns} = matrax,
         row_from..row_to = row_range,
