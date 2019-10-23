@@ -665,7 +665,7 @@ defmodule Matrax do
 
       iex> matrax = Matrax.identity(5)
       iex> matrax |> Matrax.diagonal() |> Matrax.to_list_of_lists
-      [1, 1, 1, 1, 1]
+      [[1, 1, 1, 1, 1]]
   """
   @spec diagonal(t) :: t
   def diagonal(%Matrax{} = matrax) do
