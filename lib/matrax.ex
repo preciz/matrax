@@ -710,6 +710,43 @@ defmodule Matrax do
   end
 
   @doc """
+  Returns position tuple of biggest value.
+
+  ## Examples
+
+      iex> matrax = Matrax.new(5, 5, seed_fun: fn _, {row, col} -> row * col end)
+      iex> matrax |> Matrax.argmax()
+      {4, 4}
+  """
+  @spec argmax(t) :: integer
+  def argmax(%Matrax{} = matrax) do
+    last_index = count(matrax)
+    first_position = index_to_position(matrax, last_index)
+
+    {_, position} =
+      do_argmax(matrax, last_index - 1, {get(matrax, first_position), first_position})
+
+    position
+  end
+
+  defp do_argmax(_, 0, acc), do: acc
+
+  defp do_argmax(matrax, index, {acc_value, _acc_position} = acc) do
+    position = index_to_position(matrax, index)
+
+    value_at_index = get(matrax, position)
+
+    do_argmax(
+      matrax,
+      index - 1,
+      case Kernel.max(acc_value, value_at_index) do
+        ^acc_value -> acc
+        _else -> {value_at_index, position}
+      end
+    )
+  end
+
+  @doc """
   Reshapes `matrax` to the given `rows` & `cols`.
 
   ## Examples
