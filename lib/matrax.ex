@@ -93,8 +93,8 @@ defmodule Matrax do
       {0, 9}
   """
   @spec index_to_position(t, pos_integer) :: position
-  def index_to_position(%Matrax{columns: columns}, index)
-      when is_integer(index) do
+  def index_to_position(%Matrax{rows: rows, columns: columns}, index)
+      when is_integer(index) and index <= rows * columns do
     index = index - 1
 
     {div(index, columns), rem(index, columns)}
