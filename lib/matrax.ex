@@ -419,18 +419,22 @@ defmodule Matrax do
       iex> matrax = Matrax.new(10, 10, seed_fun: fn _, {row, col} -> row * col end)
       iex> matrax |> Matrax.sum()
       2025
+      iex> Matrax.new(5, 5, seed_fun: fn _ -> 1 end) |> Matrax.sum()
+      25
   """
   @spec sum(t) :: integer
-  def sum(%Matrax{atomics: atomics} = matrax) do
+  def sum(%Matrax{} = matrax) do
     last_index = count(matrax)
 
-    do_sum(atomics, last_index - 1, :atomics.get(atomics, last_index))
+    do_sum(matrax, last_index, 0)
   end
 
   defp do_sum(_, 0, acc), do: acc
 
-  defp do_sum(atomics, index, acc) do
-    do_sum(atomics, index - 1, acc + :atomics.get(atomics, index))
+  defp do_sum(matrax, index, acc) do
+    position = index_to_position(matrax, index)
+
+    do_sum(matrax, index - 1, acc + get(matrax, position))
   end
 
   @doc """
