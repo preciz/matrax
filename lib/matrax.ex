@@ -655,18 +655,18 @@ defmodule Matrax do
 
   ## Examples
 
-      iex> matrax = Matrax.new(4, 3, seed_fun: fn _ -> 1 end)
+      iex> matrax = Matrax.new(4, 3, seed_fun: fn _, {_row, col} -> col end)
       iex> matrax |> Matrax.to_list_of_lists()
       [
-          [1, 1, 1],
-          [1, 1, 1],
-          [1, 1, 1],
-          [1, 1, 1]
+          [0, 1, 2],
+          [0, 1, 2],
+          [0, 1, 2],
+          [0, 1, 2]
       ]
       iex> matrax |> Matrax.reshape(2, 6) |> Matrax.to_list_of_lists()
       [
-          [1, 1, 1, 1, 1, 1],
-          [1, 1, 1, 1, 1, 1]
+          [0, 1, 2, 0, 1, 2],
+          [0, 1, 2, 0, 1, 2]
       ]
   """
   @spec reshape(t, pos_integer, pos_integer) :: t
