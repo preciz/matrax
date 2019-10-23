@@ -23,7 +23,7 @@ Add `matrax` to your list of dependencies in `mix.exs`:
 ```elixir
 def deps do
   [
-    {:matrax, "~> 0.1"}
+    {:matrax, "~> 0.2"}
   ]
 end
 ```
@@ -51,7 +51,12 @@ See [https://hexdocs.pm/matrax](https://hexdocs.pm/matrax) for full documentatio
 * `Matrax.to_list_of_lists/1` - Converts matrix to list of lists.
 * `Matrax.row_to_list/2` - Converts row at given index of matrix to list.
 * `Matrax.column_to_list/2` - Converts column at given index of matrix to list.
+* `Matrax.copy/1` - Returns a copy of the matrix with a new atomics reference. Can be used to finish access path only modifications.
 * `Matrax.transpose/1` - Transposes the given matrix. (access path modification only)
-* `Matrax.copy/1` - Returns a copy of the matrix with a new atomics reference. Can be used to finish transpose.
-* `Matrax.submatrix/3` - Returns a new submatrix. Creates new atomics and copies values over.
+* `Matrax.submatrix/3` - Returns a new submatrix. (access path modification only)
+* `Matrax.reshape/3` Reshapes matrix. (access path modification only)
+* `Matrax.diagonal/1` Returns diagonal of matrix. (access path modification only)
+* `Matrax.argmax/1` Returns position with largest value.
+* `Matrax.find/2` Returns position of value's first occurence or nil.
+* `Matrax.identity/1` Creates new identity matrix.
 
