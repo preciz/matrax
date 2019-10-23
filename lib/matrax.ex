@@ -397,24 +397,18 @@ defmodule Matrax do
       iex> matrax = Matrax.new(10, 10, seed_fun: fn _, {row, col} -> row * col end)
       iex> matrax |> Matrax.max()
       81
+      iex> Matrax.new(5, 5) |> Matrax.max()
+      0
   """
   @spec max(t) :: integer
   def max(%Matrax{} = matrax) do
     last_index = count(matrax)
+    first_position = index_to_position(matrax, last_index)
 
-    do_max(matrax, last_index - 1, get(matrax, index_to_position(matrax, last_index)))
-  end
+    {max_value, _position} =
+      do_argmax(matrax, last_index - 1, {get(matrax, first_position), first_position})
 
-  defp do_max(_, 0, acc), do: acc
-
-  defp do_max(matrax, index, acc) do
-    value_at_index = get(matrax, index_to_position(matrax, index))
-
-    do_max(
-      matrax,
-      index - 1,
-      Kernel.max(acc, value_at_index)
-    )
+    max_value
   end
 
   @doc """
@@ -564,23 +558,8 @@ defmodule Matrax do
       false
   """
   @spec member?(t, integer) :: boolean
-  def member?(%Matrax{min: min, max: max} = matrax, value) when is_integer(value) do
-    case value do
-      v when v < min or v > max ->
-        false
-
-      _else ->
-        do_member?(matrax, count(matrax), value)
-    end
-  end
-
-  defp do_member?(_, 0, _), do: false
-
-  defp do_member?(matrax, index, integer) do
-    case get(matrax, index_to_position(matrax, index)) do
-      ^integer -> true
-      _else -> do_member?(matrax, index - 1, integer)
-    end
+  def member?(%Matrax{} = matrax, value) when is_integer(value) do
+    !!find(matrax, value)
   end
 
   @doc """
