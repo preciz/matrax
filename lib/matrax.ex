@@ -84,6 +84,32 @@ defmodule Matrax do
   end
 
   @doc """
+  Create identity square matrix of given `size`.
+
+  ## Examples
+
+      iex> Matrax.identity(5) |> Matrax.to_list_of_lists
+      [
+          [1, 0, 0, 0, 0],
+          [0, 1, 0, 0, 0],
+          [0, 0, 1, 0, 0],
+          [0, 0, 0, 1, 0],
+          [0, 0, 0, 0, 1]
+      ]
+  """
+  @spec identity(non_neg_integer) :: t
+  def identity(size) when is_integer(size) and size > 0 do
+    new(
+      size,
+      size,
+      seed_fun: fn
+        _, {same, same} -> 1
+        _, {_, _} -> 0
+      end
+    )
+  end
+
+  @doc """
   Returns a position tuple for the given atomics `index`.
 
   ## Examples
