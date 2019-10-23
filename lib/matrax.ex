@@ -837,18 +837,19 @@ defmodule Matrax do
       [:atomics.get(atomics, index) | do_slice(atomics, index + 1, length - 1)]
     end
 
-    def reduce(%Matrax{atomics: atomics} = matrax, acc, fun) do
-      do_reduce({atomics, 0, Matrax.count(matrax)}, acc, fun)
+    def reduce(%Matrax{} = matrax, acc, fun) do
+      do_reduce({matrax, 0, Matrax.count(matrax)}, acc, fun)
     end
 
     def do_reduce(_, {:halt, acc}, _fun), do: {:halted, acc}
     def do_reduce(tuple, {:suspend, acc}, fun), do: {:suspended, acc, &do_reduce(tuple, &1, fun)}
     def do_reduce({_, same, same}, {:cont, acc}, _fun), do: {:done, acc}
 
-    def do_reduce({atomics, index, count}, {:cont, acc}, fun) do
+    def do_reduce({matrax, index, count}, {:cont, acc}, fun) do
+      position = Matrax.index_to_position(matrax, index + 1)
       do_reduce(
-        {atomics, index + 1, count},
-        fun.(:atomics.get(atomics, index + 1), acc),
+        {matrax, index + 1, count},
+        fun.(Matrax.get(matrax, position), acc),
         fun
       )
     end
