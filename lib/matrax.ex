@@ -790,6 +790,43 @@ defmodule Matrax do
     }
   end
 
+  @doc """
+  Returns position of the first occurence of the given `value`
+  or `nil ` if nothing was found.
+
+  ## Examples
+
+      iex> Matrax.new(5, 5) |> Matrax.find(0)
+      {0, 0}
+      iex> matrax = Matrax.new(5, 5, seed_fun: fn _, {row, col} -> row * col end)
+      iex> matrax |> Matrax.find(16)
+      {4, 4}
+      iex> matrax |> Matrax.find(42)
+      nil
+  """
+  @spec find(t, integer) :: position | nil
+  def find(%Matrax{min: min, max: max} = matrax, value) when is_integer(value) do
+    case value do
+      v when v < min or v > max ->
+        nil
+      _else  ->
+        do_find(matrax, 1, count(matrax) + 1, value)
+    end
+  end
+
+  def do_find(_, same, same, _) do
+    nil
+  end
+
+  def do_find(matrax, index, one_over_last_index, value) do
+    position = index_to_position(matrax, index)
+
+    case get(matrax, position) do
+      ^value -> position
+      _else -> do_find(matrax, index + 1, one_over_last_index, value)
+    end
+  end
+
   defimpl Enumerable do
     @moduledoc false
 
