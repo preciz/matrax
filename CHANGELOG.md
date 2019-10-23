@@ -1,5 +1,8 @@
 # Changelog for Matrax
 
+## v0.2.2
+  * Implemented `flip_ud/1` function
+
 ## v0.2.1
   * Implemented `flip_lr/1` function
 
