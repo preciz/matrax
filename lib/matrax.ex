@@ -620,13 +620,31 @@ defmodule Matrax do
   """
   @spec copy(t) :: t
   def copy(%Matrax{} = matrax) do
-    new_atomics = :atomics.new(count(matrax), signed: matrax.signed)
+    size = count(matrax)
 
-    matrax_copy = %Matrax{matrax | atomics: new_atomics, changes: []}
+    matrax_copy = %Matrax{
+      matrax
+      | atomics: :atomics.new(size, signed: matrax.signed),
+        changes: []
+    }
 
-    Matrax.apply(matrax_copy, fn _, {row, col} -> get(matrax, {row, col}) end)
+    do_copy(matrax, matrax_copy, 0, size)
 
     matrax_copy
+  end
+
+  def do_copy(_, _, same, same) do
+    :done
+  end
+
+  def do_copy(matrax, matrax_copy, index, size) do
+    next_index = index + 1
+
+    value = get(matrax, index_to_position(matrax_copy, next_index))
+
+    :atomics.put(matrax_copy.atomics, next_index, value)
+
+    do_copy(matrax, matrax_copy, next_index, size)
   end
 
   @doc """
