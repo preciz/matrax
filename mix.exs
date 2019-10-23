@@ -15,7 +15,7 @@ defmodule Matrax.MixProject do
       package: package(),
       homepage_url: @github,
       description: """
-      A fast matrix library in pure Elixir based on `atomics`.
+      A matrix library in pure Elixir based on `atomics`.
       """
     ]
   end

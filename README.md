@@ -1,6 +1,6 @@
 # Matrax
 
-A fast matrix library in pure Elixir based on `atomics`.
+A matrix library in pure Elixir based on `atomics`.
 
 ```elixir
 iex> matrax = Matrax.new(7, 4, seed_fun: fn _, {row, col} -> row + col end)
