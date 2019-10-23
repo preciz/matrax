@@ -26,9 +26,9 @@ defmodule Matrax do
       false
   """
 
-  @compile {:inline, position_to_index: 2, index_to_position: 2, count: 1}
+  @compile {:inline, position_to_index: 2, position_to_index: 3, index_to_position: 2, count: 1}
 
-  @keys [:atomics, :rows, :columns, :min, :max, :signed, :transposed]
+  @keys [:atomics, :rows, :columns, :min, :max, :signed, :changes]
   @enforce_keys @keys
   defstruct @keys
 
@@ -39,7 +39,7 @@ defmodule Matrax do
           min: integer,
           max: pos_integer,
           signed: boolean,
-          transposed: boolean
+          changes: list
         }
 
   @type position :: {row :: non_neg_integer, col :: non_neg_integer}
@@ -73,7 +73,7 @@ defmodule Matrax do
       min: min,
       max: max,
       signed: signed,
-      transposed: false
+      changes: []
     }
 
     if seed_fun do
@@ -93,17 +93,11 @@ defmodule Matrax do
       {0, 9}
   """
   @spec index_to_position(t, pos_integer) :: position
-  def index_to_position(%Matrax{columns: columns, transposed: false}, index)
+  def index_to_position(%Matrax{columns: columns}, index)
       when is_integer(index) do
     index = index - 1
 
     {div(index, columns), rem(index, columns)}
-  end
-
-  def index_to_position(%Matrax{rows: rows, transposed: true}, index) when is_integer(index) do
-    index = index - 1
-
-    {rem(index, rows), div(index, rows)}
   end
 
   @doc """
@@ -119,14 +113,33 @@ defmodule Matrax do
       5
   """
   @spec position_to_index(t, position) :: pos_integer
-  def position_to_index(%Matrax{rows: rows, columns: columns, transposed: false}, {row, col})
+  def position_to_index(%Matrax{rows: rows, columns: columns, changes: []}, {row, col})
       when row <= rows and col <= columns do
-    row * columns + col + 1
+    position_to_index(columns, row, col)
   end
 
-  def position_to_index(%Matrax{rows: rows, columns: columns, transposed: true}, {row, col})
-      when row <= rows and col <= columns do
-    col * rows + row + 1
+  def position_to_index(
+        %Matrax{rows: rows, columns: columns, changes: [:transpose | changes_tl]} = matrax,
+        {row, col}
+      ) do
+    position_to_index(
+      %Matrax{matrax | rows: columns, columns: rows, changes: changes_tl},
+      {col, row}
+    )
+  end
+
+  def position_to_index(
+        %Matrax{changes: [{:reshape, old_row, old_col} | changes_tl]} = matrax,
+        {row, col}
+      ) do
+    old_matrax = %Matrax{matrax | rows: old_row, columns: old_col, changes: changes_tl}
+    old_position = index_to_position(old_matrax, position_to_index(matrax.columns, row, col))
+
+    position_to_index(old_matrax, old_position)
+  end
+
+  defp position_to_index(columns, row, col) do
+    row * columns + col + 1
   end
 
   @doc """
@@ -524,23 +537,11 @@ defmodule Matrax do
   def copy(%Matrax{} = matrax) do
     new_atomics = :atomics.new(count(matrax), signed: matrax.signed)
 
-    matrax_copy = %Matrax{matrax | atomics: new_atomics, transposed: false}
+    matrax_copy = %Matrax{matrax | atomics: new_atomics, changes: []}
 
-    do_copy(matrax, matrax_copy, count(matrax))
+    Matrax.apply(matrax_copy, fn _, {row, col} -> get(matrax, {row, col}) end)
 
     matrax_copy
-  end
-
-  defp do_copy(_, _, 0) do
-    :done
-  end
-
-  defp do_copy(matrax, matrax_copy, index) do
-    value = :atomics.get(matrax.atomics, index)
-
-    put(matrax_copy, index_to_position(matrax, index), value)
-
-    do_copy(matrax, matrax_copy, index - 1)
   end
 
   @doc """
@@ -575,12 +576,21 @@ defmodule Matrax do
       ]
   """
   @spec transpose(t) :: t
+  def transpose(%Matrax{changes: [:transpose | changes_tl]} = matrax) do
+    %Matrax{
+      matrax
+      | rows: matrax.columns,
+        columns: matrax.rows,
+        changes: changes_tl
+    }
+  end
+
   def transpose(%Matrax{} = matrax) do
     %Matrax{
       matrax
       | rows: matrax.columns,
         columns: matrax.rows,
-        transposed: not matrax.transposed
+        changes: [:transpose | matrax.changes]
     }
   end
 
@@ -633,7 +643,7 @@ defmodule Matrax do
       min: matrax.min,
       max: matrax.max,
       signed: matrax.signed,
-      transposed: false
+      changes: []
     }
 
     Matrax.apply(submatrax, fn _, {row, col} -> get(matrax, {row + row_from, col + col_from}) end)
@@ -661,9 +671,28 @@ defmodule Matrax do
       ]
   """
   @spec reshape(t, pos_integer, pos_integer) :: t
+  def reshape(
+        %Matrax{changes: [{:reshape, old_rows, old_columns} | changes_tl]} = matrax,
+        desired_rows,
+        desired_columns
+      )
+      when old_rows * old_columns == desired_rows * desired_columns do
+    %Matrax{
+      matrax
+      | rows: desired_rows,
+        columns: desired_columns,
+        changes: [{:reshape, old_rows, old_columns} | changes_tl]
+    }
+  end
+
   def reshape(%Matrax{rows: rows, columns: columns} = matrax, desired_rows, desired_columns)
       when rows * columns == desired_rows * desired_columns do
-    %Matrax{matrax | rows: desired_rows, columns: desired_columns}
+    %Matrax{
+      matrax
+      | rows: desired_rows,
+        columns: desired_columns,
+        changes: [{:reshape, rows, columns} | matrax.changes]
+    }
   end
 
   defimpl Enumerable do
