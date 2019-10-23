@@ -536,9 +536,9 @@ defmodule Matrax do
   Returns a `%Matrax{}` struct with a new atomics reference
   and positional values identical to the given `matrax`.
 
-  The returned copy is always `transposed: false` so this
-  can be used to finish the access-path only transpose
-  by the `transpose/1` function.
+  The returned copy is always `changes: []` so this
+  can be used to finish the access-path only changes
+  by the `transpose/1`, `submatrix/3`, `reshape/3` functions.
 
 
       iex> matrax = Matrax.new(10, 10)
@@ -561,12 +561,11 @@ defmodule Matrax do
   @doc """
   Only modifies the struct, it doesn't move or mutate data.
 
-  Given `transposed: true` the access path to positions
+  After `transpose/1` the access path to positions
   will be modified during execution in `position_to_index/2`.
 
-  For a real transposed matrix with data modification
-  you can first `transpose/1` then `copy/1`. `copy/1` creates a
-  new `%Matrax{}` struct based on the transposed matrax.
+  If you want to get a new `:atomics` with mofified data
+  use the `copy/1` function which applies the `:changes`.
 
   ## Examples
 
@@ -609,12 +608,16 @@ defmodule Matrax do
   end
 
   @doc """
-  Returns a submatrix.
-
-  Creates a new `:atomics` for the submatrix
-  and copies values over.
+  Only modifies the struct, it doesn't move or mutate data.
 
   Ranges are inclusive.
+
+  After `submatrix/3` the access path to positions will be
+  modified during execution in `position_to_index/2`.
+
+  If you want to get a new `:atomics` with mofified data
+  use the `copy/1` function which applies the `:changes`.
+
 
   ## Examples
 
