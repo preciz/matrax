@@ -353,8 +353,6 @@ defmodule Matrax do
       iex> matrax = Matrax.new(5, 5)
       iex> Matrax.count(matrax)
       25
-      iex> Matrax.count(matrax) == :atomics.info(matrax.atomics).size
-      true
   """
   @spec count(t) :: pos_integer
   def count(%Matrax{rows: rows, columns: columns}) do
