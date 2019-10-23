@@ -184,6 +184,18 @@ defmodule Matrax do
     )
   end
 
+  def position_to_index(
+        %Matrax{
+          changes: [{:diagonal, old_rows} | changes_tl]
+        } = matrax,
+        {row, col}
+      ) do
+    position_to_index(
+      %Matrax{matrax | rows: old_rows, changes: changes_tl},
+      {row + col, col}
+    )
+  end
+
   defp position_to_index(columns, row, col) do
     row * columns + col + 1
   end
@@ -643,6 +655,30 @@ defmodule Matrax do
   @doc """
   Only modifies the struct, it doesn't move or mutate data.
 
+  After `diagonal/1` the access path to positions will be
+  modified during execution in `position_to_index/2`.
+
+  If you want to get a new `:atomics` with mofified data
+  use the `copy/1` function which applies the `:changes`.
+
+  ## Examples
+
+      iex> matrax = Matrax.identity(5)
+      iex> matrax |> Matrax.diagonal() |> Matrax.to_list_of_lists
+      [1, 1, 1, 1, 1]
+  """
+  @spec diagonal(t) :: t
+  def diagonal(%Matrax{} = matrax) do
+    %Matrax{
+      matrax |
+      rows: 1,
+      changes: [{:diagonal, matrax.rows} | matrax.changes]
+    }
+  end
+
+  @doc """
+  Only modifies the struct, it doesn't move or mutate data.
+
   Ranges are inclusive.
 
   After `submatrix/3` the access path to positions will be
@@ -650,7 +686,6 @@ defmodule Matrax do
 
   If you want to get a new `:atomics` with mofified data
   use the `copy/1` function which applies the `:changes`.
-
 
   ## Examples
 
