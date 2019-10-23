@@ -5,3 +5,4 @@
   * Implemented `reshape/3` function
   * Implemented `identity/1` function
   * Implemented `argmax/1` function
+  * Implemented `find/2` function
