@@ -1,5 +1,8 @@
 # Changelog for Matrax
 
+## v0.2.1
+  * Implemented `flip_lr/1` function
+
 ## v0.2.0
   * BREAKING - changed `submatrix/3` function to only modify access path (can be finished with `copy/1`)
   * Implemented `reshape/3` function

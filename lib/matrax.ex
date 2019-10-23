@@ -196,6 +196,19 @@ defmodule Matrax do
     )
   end
 
+  def position_to_index(
+        %Matrax{
+          columns: columns,
+          changes: [:flip_lr | changes_tl]
+        } = matrax,
+        {row, col}
+      ) do
+    position_to_index(
+      %Matrax{matrax | changes: changes_tl},
+      {row, columns - 1 - col}
+    )
+  end
+
   defp position_to_index(columns, row, col) do
     row * columns + col + 1
   end
@@ -841,6 +854,40 @@ defmodule Matrax do
       ^value -> position
       _else -> do_find(matrax, index + 1, one_over_last_index, value)
     end
+  end
+
+  @doc """
+  Flip columns of matrix in the left-right direction (vertical axis).
+
+  After `flip_lr/3` the access path to positions will be
+  modified during execution in `position_to_index/2`.
+
+  If you want to get a new `:atomics` with mofified data
+  use the `copy/1` function which applies the `:changes`.
+
+  ## Examples
+
+      iex> matrax = Matrax.new(3, 4, seed_fun: fn _, {_row, col} -> col end)
+      iex> matrax |> Matrax.to_list_of_lists()
+      [
+          [0, 1, 2, 3],
+          [0, 1, 2, 3],
+          [0, 1, 2, 3]
+      ]
+      iex> matrax |> Matrax.flip_lr() |> Matrax.to_list_of_lists()
+      [
+          [3, 2, 1, 0],
+          [3, 2, 1, 0],
+          [3, 2, 1, 0]
+      ]
+  """
+  @spec flip_lr(t) :: t
+  def flip_lr(%Matrax{changes: [:flip_lr | changes_tl]} = matrax) do
+    %Matrax{matrax | changes: changes_tl}
+  end
+
+  def flip_lr(%Matrax{} = matrax) do
+    %Matrax{matrax | changes: [:flip_lr | matrax.changes]}
   end
 
   defimpl Enumerable do
