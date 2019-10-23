@@ -778,6 +778,12 @@ defmodule Matrax do
   @doc """
   Reshapes `matrax` to the given `rows` & `cols`.
 
+  After `reshape/3` the access path to positions will be
+  modified during execution in `position_to_index/2`.
+
+  If you want to get a new `:atomics` with mofified data
+  use the `copy/1` function which applies the `:changes`.
+
   ## Examples
 
       iex> matrax = Matrax.new(4, 3, seed_fun: fn _, {_row, col} -> col end)
