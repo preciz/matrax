@@ -247,6 +247,14 @@ defmodule Matrax do
     do_position_to_index(rows, columns, changes_tl, {rows - 1 - row, col})
   end
 
+  defp do_position_to_index(1, columns, [{:row, old_rows, row_index} | changes_tl], {0, col}) do
+    do_position_to_index(old_rows, columns, changes_tl, {row_index, col})
+  end
+
+  defp do_position_to_index(rows, 1, [{:column, old_columns, col_index} | changes_tl], {row, 0}) do
+    do_position_to_index(rows, old_columns, changes_tl, {row, col_index})
+  end
+
   @doc """
   Returns value at `position` from the given matrax.
 
@@ -605,6 +613,38 @@ defmodule Matrax do
     for row <- 0..(matrax.rows - 1) do
       get(matrax, {row, col})
     end
+  end
+
+  @doc """
+  Only modifies the struct, it doesn't move or mutate data.
+
+  Reduces matrix to only one row at given `row` index.
+
+  After `row/2` the access path to positions will be
+  modified during execution.
+
+  If you want to get a new `:atomics` with mofified data
+  use the `copy/1` function which applies the `:changes`.
+  """
+  @spec row(t, non_neg_integer) :: t
+  def row(%Matrax{rows: rows, changes: changes} = matrax, row) when row in 0..(rows - 1) do
+    %Matrax{matrax | rows: 1, changes: [{:row, rows, row} | changes]}
+  end
+
+  @doc """
+  Only modifies the struct, it doesn't move or mutate data.
+
+  Reduces matrix to only one column at given `column` index.
+
+  After `column/2` the access path to positions will be
+  modified during execution.
+
+  If you want to get a new `:atomics` with mofified data
+  use the `copy/1` function which applies the `:changes`.
+  """
+  @spec column(t, non_neg_integer) :: t
+  def column(%Matrax{columns: columns, changes: changes} = matrax, column) when column in 0..(columns - 1) do
+    %Matrax{matrax | columns: 1, changes: [{:column, columns, column} | changes]}
   end
 
   @doc """
