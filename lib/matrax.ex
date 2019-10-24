@@ -668,7 +668,7 @@ defmodule Matrax do
   Only modifies the struct, it doesn't move or mutate data.
 
   After `transpose/1` the access path to positions
-  will be modified during execution in `position_to_index/2`.
+  will be modified during execution.
 
   If you want to get a new `:atomics` with mofified data
   use the `copy/1` function which applies the `:changes`.
@@ -717,7 +717,7 @@ defmodule Matrax do
   Only modifies the struct, it doesn't move or mutate data.
 
   After `diagonal/1` the access path to positions will be
-  modified during execution in `position_to_index/2`.
+  modified during execution.
 
   If you want to get a new `:atomics` with mofified data
   use the `copy/1` function which applies the `:changes`.
@@ -743,7 +743,7 @@ defmodule Matrax do
   Ranges are inclusive.
 
   After `submatrix/3` the access path to positions will be
-  modified during execution in `position_to_index/2`.
+  modified during execution.
 
   If you want to get a new `:atomics` with mofified data
   use the `copy/1` function which applies the `:changes`.
@@ -827,7 +827,7 @@ defmodule Matrax do
   Reshapes `matrax` to the given `rows` & `cols`.
 
   After `reshape/3` the access path to positions will be
-  modified during execution in `position_to_index/2`.
+  modified during execution.
 
   If you want to get a new `:atomics` with mofified data
   use the `copy/1` function which applies the `:changes`.
@@ -915,7 +915,7 @@ defmodule Matrax do
   Flip columns of matrix in the left-right direction (vertical axis).
 
   After `flip_lr/1` the access path to positions will be
-  modified during execution in `position_to_index/2`.
+  modified during execution.
 
   If you want to get a new `:atomics` with mofified data
   use the `copy/1` function which applies the `:changes`.
@@ -949,7 +949,7 @@ defmodule Matrax do
   Flip rows of matrix in the up-down direction (horizontal axis).
 
   After `flip_ud/1` the access path to positions will be
-  modified during execution in `position_to_index/2`.
+  modified during execution.
 
   If you want to get a new `:atomics` with mofified data
   use the `copy/1` function which applies the `:changes`.
