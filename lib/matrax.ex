@@ -702,11 +702,11 @@ defmodule Matrax do
     %Matrax{matrax | atomics: new_atomics_ref, changes: []}
   end
 
-  def do_copy(_, _, _, same, same) do
+  defp do_copy(_, _, _, same, same) do
     :done
   end
 
-  def do_copy(matrax, new_atomics_ref, columns, index, size) do
+  defp do_copy(matrax, new_atomics_ref, columns, index, size) do
     next_index = index + 1
 
     value = get(matrax, {div(index, columns), rem(index, columns)})
@@ -950,11 +950,11 @@ defmodule Matrax do
     end
   end
 
-  def do_find(_, same, same, _) do
+  defp do_find(_, same, same, _) do
     nil
   end
 
-  def do_find(matrax, index, one_over_last_index, value) do
+  defp do_find(matrax, index, one_over_last_index, value) do
     position = index_to_position(matrax, index)
 
     case get(matrax, position) do
