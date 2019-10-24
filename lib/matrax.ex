@@ -52,6 +52,54 @@ defmodule Matrax do
   @type position :: {row :: non_neg_integer, col :: non_neg_integer}
 
   @doc """
+  Converts a `list_of_lists` to a new `%Matrax{}` struct.
+
+  ## Options
+    * `:signed` - whether to have signed or unsigned 64bit integers
+
+  ## Examples
+
+       iex> matrax = %Matrax{rows: 2, columns: 3} = Matrax.new([[1,2,3], [4, 5, 6]])
+       iex> matrax |> Matrax.to_list_of_lists
+       [[1,2,3], [4, 5, 6]]
+       iex> matrax |> Matrax.count
+       6
+  """
+  @spec new(list(list), list) :: t
+  def new(list_of_lists) do
+    new(list_of_lists, [])
+  end
+
+  def new([first_list | _ ] = list_of_lists, options) when is_list(list_of_lists) and is_list(options) do
+    rows = length(list_of_lists)
+    columns = length(first_list)
+
+    signed = Keyword.get(options, :signed, true)
+
+    atomics = :atomics.new(rows * columns, signed: signed)
+
+    list_of_lists
+    |> List.flatten()
+    |> Enum.reduce(1, fn value, index ->
+      :atomics.put(atomics, index, value)
+
+      index + 1
+    end)
+
+    %{min: min, max: max} = :atomics.info(atomics)
+
+    %Matrax{
+      atomics: atomics,
+      rows: rows,
+      columns: columns,
+      min: min,
+      max: max,
+      signed: signed,
+      changes: []
+    }
+  end
+
+  @doc """
   Returns a new `%Matrax{}` struct.
 
   ## Options
