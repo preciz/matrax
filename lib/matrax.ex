@@ -625,6 +625,12 @@ defmodule Matrax do
 
   If you want to get a new `:atomics` with mofified data
   use the `copy/1` function which applies the `:changes`.
+
+  ## Examples
+
+      iex> matrax = Matrax.new(5, 5, seed_fun: fn _, {row, _col} -> row end)
+      iex> matrax |> Matrax.row(4) |> Matrax.to_list_of_lists
+      [[4, 4, 4, 4, 4]]
   """
   @spec row(t, non_neg_integer) :: t
   def row(%Matrax{rows: rows, changes: changes} = matrax, row) when row in 0..(rows - 1) do
@@ -641,6 +647,12 @@ defmodule Matrax do
 
   If you want to get a new `:atomics` with mofified data
   use the `copy/1` function which applies the `:changes`.
+
+  ## Examples
+
+      iex> matrax = Matrax.new(5, 5, seed_fun: fn _, {_row, col} -> col end)
+      iex> matrax |> Matrax.column(4) |> Matrax.to_list_of_lists
+      [[4], [4], [4], [4], [4]]
   """
   @spec column(t, non_neg_integer) :: t
   def column(%Matrax{columns: columns, changes: changes} = matrax, column) when column in 0..(columns - 1) do
