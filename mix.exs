@@ -1,7 +1,7 @@
 defmodule Matrax.MixProject do
   use Mix.Project
 
-  @version "0.2.2"
+  @version "0.2.3"
   @github "https://github.com/preciz/matrax"
 
   def project do
