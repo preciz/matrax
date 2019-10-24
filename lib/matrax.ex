@@ -30,7 +30,7 @@ defmodule Matrax do
             position_to_index: 2,
             do_position_to_index: 4,
             index_to_position: 2,
-            index_to_position: 3,
+            do_index_to_position: 2,
             count: 1,
             put: 3,
             get: 2}
@@ -128,10 +128,10 @@ defmodule Matrax do
   @spec index_to_position(t, pos_integer) :: position
   def index_to_position(%Matrax{rows: rows, columns: columns}, index)
       when is_integer(index) and index <= rows * columns do
-    index_to_position(rows, columns, index)
+        do_index_to_position(columns, index)
   end
 
-  defp index_to_position(_rows, columns, index) do
+  defp do_index_to_position(columns, index) do
     index = index - 1
 
     {div(index, columns), rem(index, columns)}
@@ -170,8 +170,7 @@ defmodule Matrax do
          {row, col}
        ) do
     old_position =
-      index_to_position(
-        old_rows,
+      do_index_to_position(
         old_columns,
         do_position_to_index(rows, columns, changes_tl, {row, col})
       )
@@ -596,29 +595,25 @@ defmodule Matrax do
   def copy(%Matrax{} = matrax) do
     size = count(matrax)
 
-    matrax_copy = %Matrax{
-      matrax
-      | atomics: :atomics.new(size, signed: matrax.signed),
-        changes: []
-    }
+    new_atomics_ref = :atomics.new(size, signed: matrax.signed)
 
-    do_copy(matrax, matrax_copy, 0, size)
+    do_copy(matrax, new_atomics_ref, matrax.columns, 0, size)
 
-    matrax_copy
+    %Matrax{matrax | atomics: new_atomics_ref, changes: []}
   end
 
-  def do_copy(_, _, same, same) do
+  def do_copy(_, _, _, same, same) do
     :done
   end
 
-  def do_copy(matrax, matrax_copy, index, size) do
+  def do_copy(matrax, new_atomics_ref, columns, index, size) do
     next_index = index + 1
 
-    value = get(matrax, index_to_position(matrax_copy, next_index))
+    value = get(matrax, do_index_to_position(columns, next_index))
 
-    :atomics.put(matrax_copy.atomics, next_index, value)
+    :atomics.put(new_atomics_ref, next_index, value)
 
-    do_copy(matrax, matrax_copy, next_index, size)
+    do_copy(matrax, new_atomics_ref, columns, next_index, size)
   end
 
   @doc """
