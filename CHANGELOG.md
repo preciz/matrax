@@ -3,6 +3,7 @@
 ## v0.2.4
   * Implemented `trace/1` function
   * Implemented `set_column/3` function
+  * Implemented `set_row/3` function
 
 ## v0.2.3
   * Implemented `new/1` with list_of_lists as argument

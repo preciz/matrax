@@ -1048,7 +1048,34 @@ defmodule Matrax do
   end
 
   @doc """
-  Set column of a matrix to the values from the given 1-column matrix.
+  Set row of a matrix at `row_index` to the values from the given 1-row matrix.
+
+  ## Examples
+
+      iex> matrax = Matrax.new(5, 5, seed_fun: fn _ -> 1 end)
+      iex> row_matrax = Matrax.new(1, 5, seed_fun: fn _ -> 3 end)
+      iex> Matrax.set_row(matrax, 2, row_matrax) |> Matrax.to_list_of_lists
+      [
+        [1, 1, 1, 1, 1],
+        [1, 1, 1, 1, 1],
+        [3, 3, 3, 3, 3],
+        [1, 1, 1, 1, 1],
+        [1, 1, 1, 1, 1],
+      ]
+  """
+  @spec set_row(t, non_neg_integer, t) :: t
+  def set_row(%Matrax{columns: columns} = matrax, row_index, %Matrax{columns: columns, rows: 1} = row_matrax) do
+    matrax
+    |> row(row_index)
+    |> Matrax.apply(fn _, position ->
+      get(row_matrax, position)
+    end)
+
+    matrax
+  end
+
+  @doc """
+  Set column of a matrix at `column_index` `to the values from the given 1-column matrix.
 
   ## Examples
 
