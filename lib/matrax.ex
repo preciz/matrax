@@ -1031,6 +1031,22 @@ defmodule Matrax do
     %Matrax{matrax | changes: [:flip_ud | matrax.changes]}
   end
 
+  @doc """
+  Trace of matrix (sum of all diagonal elements).
+
+  ## Examples
+
+      iex> matrax = Matrax.new(5, 5, seed_fun: fn _ -> 1 end)
+      iex> matrax |> Matrax.trace()
+      5
+  """
+  @spec trace(t) :: integer()
+  def trace(%Matrax{} = matrax) do
+    matrax
+    |> diagonal()
+    |> sum()
+  end
+
   defimpl Enumerable do
     @moduledoc false
 
