@@ -1047,6 +1047,33 @@ defmodule Matrax do
     |> sum()
   end
 
+  @doc """
+  Set column of a matrix to the values from the given 1-column matrix.
+
+  ## Examples
+
+      iex> matrax = Matrax.new(5, 5, seed_fun: fn _ -> 1 end)
+      iex> column_matrax = Matrax.new(5, 1, seed_fun: fn _ -> 3 end)
+      iex> Matrax.set_column(matrax, 2, column_matrax) |> Matrax.to_list_of_lists
+      [
+        [1, 1, 3, 1, 1],
+        [1, 1, 3, 1, 1],
+        [1, 1, 3, 1, 1],
+        [1, 1, 3, 1, 1],
+        [1, 1, 3, 1, 1],
+      ]
+  """
+  @spec set_column(t, non_neg_integer, t) :: t
+  def set_column(%Matrax{rows: rows} = matrax, column_index, %Matrax{rows: rows, columns: 1} = column_matrax) do
+    matrax
+    |> column(column_index)
+    |> Matrax.apply(fn _, position ->
+      get(column_matrax, position)
+    end)
+
+    matrax
+  end
+
   defimpl Enumerable do
     @moduledoc false
 
