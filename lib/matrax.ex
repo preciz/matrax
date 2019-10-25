@@ -1075,7 +1075,7 @@ defmodule Matrax do
   end
 
   @doc """
-  Set column of a matrix at `column_index` `to the values from the given 1-column matrix.
+  Set column of a matrix at `column_index` to the values from the given 1-column matrix.
 
   ## Examples
 
