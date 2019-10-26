@@ -1208,11 +1208,11 @@ defmodule Matrax do
     do_clear_changes(matrax)
   end
 
-  def do_clear_changes(%Matrax{changes: []} = matrax) do
+  defp do_clear_changes(%Matrax{changes: []} = matrax) do
     matrax
   end
 
-  def do_clear_changes(matrax) do
+  defp do_clear_changes(matrax) do
     do_clear_changes(matrax |> clear_last_change())
   end
 
