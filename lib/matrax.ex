@@ -167,9 +167,13 @@ defmodule Matrax do
   @doc """
   Returns a position tuple for the given atomics `index`.
 
+  Indices of atomix are 1 based.
+
   ## Examples
 
       iex> matrax = Matrax.new(10, 10)
+      iex> Matrax.index_to_position(matrax, 1)
+      {0, 0}
       iex> Matrax.index_to_position(matrax, 10)
       {0, 9}
   """
