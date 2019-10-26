@@ -35,4 +35,14 @@ defmodule MatraxTest do
       assert index == Matrax.get(matrax, position)
     end)
   end
+
+  test "column & reshape interop" do
+    matrax = Matrax.new(5, 5, seed_fun: fn _, {row, col} -> row end)
+
+    col2 = matrax |> Matrax.column(2)
+
+    assert [[0], [1], [2], [3], [4]] == col2 |> Matrax.to_list_of_lists()
+
+    assert [[0, 1, 2, 3, 4]] == col2 |> Matrax.reshape(1, 5) |> Matrax.to_list_of_lists()
+  end
 end
