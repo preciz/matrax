@@ -1,6 +1,7 @@
 # Changelog for Matrax
 
 ## v0.3.0
+  * Bug fix - positions after `reshape/3` were not mapped to indexes correctly
   * BREAKING - `argmax/1` now returns first position instead of last given multiple occurence of equal maximal values
   * Implemented `argmin/1` function
   * Implemented `clear_changes/1` function (for reverting all changes in :changes key)
