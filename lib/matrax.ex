@@ -221,11 +221,9 @@ defmodule Matrax do
          [{:reshape, {old_rows, old_columns}} | changes_tl],
          {row, col}
        ) do
-    old_position =
-      do_index_to_position(
-        old_columns,
-        do_position_to_index(rows, columns, changes_tl, {row, col})
-      )
+    current_index = do_position_to_index(rows, columns, [], {row, col})
+
+    old_position = do_index_to_position(old_columns, current_index)
 
     do_position_to_index(old_rows, old_columns, changes_tl, old_position)
   end
