@@ -441,21 +441,9 @@ defmodule Matrax do
   """
   @spec min(t) :: integer
   def min(%Matrax{} = matrax) do
-    last_index = count(matrax)
+    {min_value, _position} = do_argmin(matrax)
 
-    do_min(matrax, last_index - 1, get(matrax, index_to_position(matrax, last_index)))
-  end
-
-  defp do_min(_, 0, acc), do: acc
-
-  defp do_min(matrax, index, acc) do
-    value_at_index = get(matrax, index_to_position(matrax, index))
-
-    do_min(
-      matrax,
-      index - 1,
-      Kernel.min(acc, value_at_index)
-    )
+    min_value
   end
 
   @doc """
@@ -873,6 +861,53 @@ defmodule Matrax do
       matrax,
       index - 1,
       case Kernel.max(acc_value, value_at_index) do
+        ^acc_value -> acc
+        _else -> {value_at_index, position}
+      end
+    )
+  end
+
+  @doc """
+  Returns position tuple of smallest value.
+
+  ## Examples
+
+      iex> matrax = Matrax.new(5, 5, seed_fun: fn _, {row, col} -> row * col end)
+      iex> matrax |> Matrax.argmin()
+      {0, 0}
+      iex> matrax = Matrax.new(5, 5, seed_fun: fn _, {row, col} -> -(row * col) end)
+      iex> matrax |> Matrax.argmin()
+      {4, 4}
+  """
+  @spec argmin(t) :: integer
+  def argmin(%Matrax{} = matrax) do
+    {_, position} = do_argmin(matrax)
+
+    position
+  end
+
+  defp do_argmin(matrax) do
+    acc = {get(matrax, {0, 0}), {0, 0}}
+
+    do_argmin(matrax, 1, count(matrax), acc)
+  end
+
+  defp do_argmin(_, same, same, acc) do
+    acc
+  end
+
+  defp do_argmin(matrax, index, size, {acc_value, _acc_position} = acc) do
+    next_index = index + 1
+
+    position = index_to_position(matrax, next_index)
+
+    value_at_index = get(matrax, position)
+
+    do_argmin(
+      matrax,
+      next_index,
+      size,
+      case Kernel.min(acc_value, value_at_index) do
         ^acc_value -> acc
         _else -> {value_at_index, position}
       end
