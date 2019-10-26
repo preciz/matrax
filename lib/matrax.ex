@@ -218,7 +218,7 @@ defmodule Matrax do
   defp do_position_to_index(
          rows,
          columns,
-         [{:reshape, old_rows, old_columns} | changes_tl],
+         [{:reshape, {old_rows, old_columns}} | changes_tl],
          {row, col}
        ) do
     old_position =
@@ -233,13 +233,13 @@ defmodule Matrax do
   defp do_position_to_index(
          _,
          _,
-         [{:submatrix, old_rows, old_columns, row_from.._row_to, col_from.._col_to} | changes_tl],
+         [{:submatrix, {old_rows, old_columns}, row_from.._row_to, col_from.._col_to} | changes_tl],
          {row, col}
        ) do
     do_position_to_index(old_rows, old_columns, changes_tl, {row + row_from, col + col_from})
   end
 
-  defp do_position_to_index(_, columns, [{:diagonal, old_rows} | changes_tl], {row, col}) do
+  defp do_position_to_index(_, columns, [{:diagonal, {old_rows, _old_columns}} | changes_tl], {row, col}) do
     do_position_to_index(old_rows, columns, changes_tl, {row + col, col})
   end
 
@@ -251,11 +251,11 @@ defmodule Matrax do
     do_position_to_index(rows, columns, changes_tl, {rows - 1 - row, col})
   end
 
-  defp do_position_to_index(1, columns, [{:row, old_rows, row_index} | changes_tl], {0, col}) do
+  defp do_position_to_index(1, columns, [{:row, {old_rows, _old_columns}, row_index} | changes_tl], {0, col}) do
     do_position_to_index(old_rows, columns, changes_tl, {row_index, col})
   end
 
-  defp do_position_to_index(rows, 1, [{:column, old_columns, col_index} | changes_tl], {row, 0}) do
+  defp do_position_to_index(rows, 1, [{:column, {_old_rows, old_columns}, col_index} | changes_tl], {row, 0}) do
     do_position_to_index(rows, old_columns, changes_tl, {row, col_index})
   end
 
@@ -621,8 +621,8 @@ defmodule Matrax do
       [[4, 4, 4, 4, 4]]
   """
   @spec row(t, non_neg_integer) :: t
-  def row(%Matrax{rows: rows, changes: changes} = matrax, row) when row in 0..(rows - 1) do
-    %Matrax{matrax | rows: 1, changes: [{:row, rows, row} | changes]}
+  def row(%Matrax{rows: rows, columns: columns, changes: changes} = matrax, row) when row in 0..(rows - 1) do
+    %Matrax{matrax | rows: 1, changes: [{:row, {rows, columns}, row} | changes]}
   end
 
   @doc """
@@ -643,8 +643,8 @@ defmodule Matrax do
       [[4], [4], [4], [4], [4]]
   """
   @spec column(t, non_neg_integer) :: t
-  def column(%Matrax{columns: columns, changes: changes} = matrax, column) when column in 0..(columns - 1) do
-    %Matrax{matrax | columns: 1, changes: [{:column, columns, column} | changes]}
+  def column(%Matrax{rows: rows, columns: columns, changes: changes} = matrax, column) when column in 0..(columns - 1) do
+    %Matrax{matrax | columns: 1, changes: [{:column, {rows, columns}, column} | changes]}
   end
 
   @doc """
@@ -769,11 +769,11 @@ defmodule Matrax do
       [[1, 1, 1, 1, 1]]
   """
   @spec diagonal(t) :: t
-  def diagonal(%Matrax{} = matrax) do
+  def diagonal(%Matrax{rows: rows, columns: columns} = matrax) do
     %Matrax{
       matrax
       | rows: 1,
-        changes: [{:diagonal, matrax.rows} | matrax.changes]
+        changes: [{:diagonal, {rows, columns}} | matrax.changes]
     }
   end
 
@@ -822,7 +822,7 @@ defmodule Matrax do
       matrax
       | rows: submatrix_rows,
         columns: submatrix_columns,
-        changes: [{:submatrix, rows, columns, row_range, col_range} | matrax.changes]
+        changes: [{:submatrix, {rows, columns}, row_range, col_range} | matrax.changes]
     }
   end
 
@@ -947,17 +947,15 @@ defmodule Matrax do
   """
   @spec reshape(t, pos_integer, pos_integer) :: t
   def reshape(
-        %Matrax{changes: [{:reshape, old_rows, old_columns} | changes_tl]} = matrax,
+        %Matrax{changes: [{:reshape, {rows, columns}} | changes_tl]} = matrax,
         desired_rows,
         desired_columns
-      )
-      when old_rows * old_columns == desired_rows * desired_columns do
-    %Matrax{
-      matrax
-      | rows: desired_rows,
-        columns: desired_columns,
-        changes: [{:reshape, old_rows, old_columns} | changes_tl]
-    }
+  ) do
+    reshape(
+      %Matrax{matrax | rows: rows, columns: columns, changes: changes_tl},
+      desired_rows,
+      desired_columns
+    )
   end
 
   def reshape(%Matrax{rows: rows, columns: columns} = matrax, desired_rows, desired_columns)
@@ -966,7 +964,7 @@ defmodule Matrax do
       matrax
       | rows: desired_rows,
         columns: desired_columns,
-        changes: [{:reshape, rows, columns} | matrax.changes]
+        changes: [{:reshape, {rows, columns}} | matrax.changes]
     }
   end
 
@@ -1144,6 +1142,95 @@ defmodule Matrax do
     end)
 
     matrax
+  end
+
+  @doc """
+  Clears all changes made to `%Matrax{}` struct by
+  setting the `:changes` key to `[]` and reverting its modifications
+  to `:rows` & `:columns`.
+
+  Clears access path only modifications like `transpose/1` but not
+  modifications to integer values in the `:atomics`.
+
+  ## Examples
+
+      iex> matrax = Matrax.identity(3)
+      iex> matrax |> Matrax.to_list_of_lists()
+      [
+        [1, 0, 0],
+        [0, 1, 0],
+        [0, 0, 1]
+      ]
+      iex> matrax = matrax |> Matrax.diagonal()
+      iex> matrax |> Matrax.apply(fn _ -> 8 end)
+      iex> matrax |> Matrax.to_list_of_lists()
+      [[8, 8, 8]]
+      iex> matrax = matrax |> Matrax.column(0)
+      iex> matrax |> Matrax.to_list_of_lists()
+      [[8]]
+      iex> matrax = matrax |> Matrax.clear_changes()
+      iex> matrax |> Matrax.to_list_of_lists()
+      [
+        [8, 0, 0],
+        [0, 8, 0],
+        [0, 0, 8]
+      ]
+  """
+  @spec clear_changes(t) :: t
+  def clear_changes(%Matrax{} = matrax) do
+    do_clear_changes(matrax)
+  end
+
+  def do_clear_changes(%Matrax{changes: []} = matrax) do
+    matrax
+  end
+
+  def do_clear_changes(matrax) do
+    do_clear_changes(matrax |> clear_last_change())
+  end
+
+  @doc """
+  Clears last change made to `%Matrax{}` struct by removing
+  the head of `:changes` key and reverting its modifications
+  to `:rows` & `:columns`.
+
+  Clears access path only modifications like `transpose/1` but not
+  modifications to integer values in the `:atomics`.
+
+  ## Examples
+
+      iex> matrax = Matrax.identity(3)
+      iex> matrax |> Matrax.to_list_of_lists()
+      [
+        [1, 0, 0],
+        [0, 1, 0],
+        [0, 0, 1]
+      ]
+      iex> matrax = matrax |> Matrax.diagonal()
+      iex> matrax |> Matrax.apply(fn _ -> 8 end)
+      iex> matrax |> Matrax.to_list_of_lists()
+      [[8, 8, 8]]
+      iex> matrax = matrax |> Matrax.clear_last_change()
+      iex> matrax |> Matrax.to_list_of_lists()
+      [
+        [8, 0, 0],
+        [0, 8, 0],
+        [0, 0, 8]
+      ]
+  """
+  @spec clear_last_change(t) :: t
+  def clear_last_change(%Matrax{changes: []} = matrax) do
+    matrax
+  end
+
+  def clear_last_change(%Matrax{changes: [change | changes_tl]} = matrax) when is_atom(change) do
+    %Matrax{matrax | changes: changes_tl}
+  end
+
+  def clear_last_change(%Matrax{changes: [change | changes_tl]} = matrax) when is_tuple(change) do
+    {rows, columns} = elem(change, 1)
+
+    %Matrax{matrax | rows: rows, columns: columns, changes: changes_tl}
   end
 
   defimpl Enumerable do
