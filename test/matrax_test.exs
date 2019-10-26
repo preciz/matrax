@@ -37,7 +37,7 @@ defmodule MatraxTest do
   end
 
   test "column & reshape interop" do
-    matrax = Matrax.new(5, 5, seed_fun: fn _, {row, col} -> row end)
+    matrax = Matrax.new(5, 5, seed_fun: fn _, {row, _col} -> row end)
 
     col2 = matrax |> Matrax.column(2)
 
