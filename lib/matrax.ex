@@ -70,7 +70,8 @@ defmodule Matrax do
     new(list_of_lists, [])
   end
 
-  def new([first_list | _ ] = list_of_lists, options) when is_list(list_of_lists) and is_list(options) do
+  def new([first_list | _] = list_of_lists, options)
+      when is_list(list_of_lists) and is_list(options) do
     rows = length(list_of_lists)
     columns = length(first_list)
 
@@ -180,7 +181,7 @@ defmodule Matrax do
   @spec index_to_position(t, pos_integer) :: position
   def index_to_position(%Matrax{rows: rows, columns: columns}, index)
       when is_integer(index) and index <= rows * columns do
-        do_index_to_position(columns, index)
+    do_index_to_position(columns, index)
   end
 
   defp do_index_to_position(columns, index) do
@@ -231,13 +232,21 @@ defmodule Matrax do
   defp do_position_to_index(
          _,
          _,
-         [{:submatrix, {old_rows, old_columns}, row_from.._row_to, col_from.._col_to} | changes_tl],
+         [
+           {:submatrix, {old_rows, old_columns}, row_from.._row_to, col_from.._col_to}
+           | changes_tl
+         ],
          {row, col}
        ) do
     do_position_to_index(old_rows, old_columns, changes_tl, {row + row_from, col + col_from})
   end
 
-  defp do_position_to_index(_, columns, [{:diagonal, {old_rows, _old_columns}} | changes_tl], {row, col}) do
+  defp do_position_to_index(
+         _,
+         columns,
+         [{:diagonal, {old_rows, _old_columns}} | changes_tl],
+         {row, col}
+       ) do
     do_position_to_index(old_rows, columns, changes_tl, {row + col, col})
   end
 
@@ -249,11 +258,21 @@ defmodule Matrax do
     do_position_to_index(rows, columns, changes_tl, {rows - 1 - row, col})
   end
 
-  defp do_position_to_index(1, columns, [{:row, {old_rows, _old_columns}, row_index} | changes_tl], {0, col}) do
+  defp do_position_to_index(
+         1,
+         columns,
+         [{:row, {old_rows, _old_columns}, row_index} | changes_tl],
+         {0, col}
+       ) do
     do_position_to_index(old_rows, columns, changes_tl, {row_index, col})
   end
 
-  defp do_position_to_index(rows, 1, [{:column, {_old_rows, old_columns}, col_index} | changes_tl], {row, 0}) do
+  defp do_position_to_index(
+         rows,
+         1,
+         [{:column, {_old_rows, old_columns}, col_index} | changes_tl],
+         {row, 0}
+       ) do
     do_position_to_index(rows, old_columns, changes_tl, {row, col_index})
   end
 
@@ -619,7 +638,8 @@ defmodule Matrax do
       [[4, 4, 4, 4, 4]]
   """
   @spec row(t, non_neg_integer) :: t
-  def row(%Matrax{rows: rows, columns: columns, changes: changes} = matrax, row) when row in 0..(rows - 1) do
+  def row(%Matrax{rows: rows, columns: columns, changes: changes} = matrax, row)
+      when row in 0..(rows - 1) do
     %Matrax{matrax | rows: 1, changes: [{:row, {rows, columns}, row} | changes]}
   end
 
@@ -641,7 +661,8 @@ defmodule Matrax do
       [[4], [4], [4], [4], [4]]
   """
   @spec column(t, non_neg_integer) :: t
-  def column(%Matrax{rows: rows, columns: columns, changes: changes} = matrax, column) when column in 0..(columns - 1) do
+  def column(%Matrax{rows: rows, columns: columns, changes: changes} = matrax, column)
+      when column in 0..(columns - 1) do
     %Matrax{matrax | columns: 1, changes: [{:column, {rows, columns}, column} | changes]}
   end
 
@@ -948,7 +969,7 @@ defmodule Matrax do
         %Matrax{changes: [{:reshape, {rows, columns}} | changes_tl]} = matrax,
         desired_rows,
         desired_columns
-  ) do
+      ) do
     reshape(
       %Matrax{matrax | rows: rows, columns: columns, changes: changes_tl},
       desired_rows,
@@ -1105,7 +1126,11 @@ defmodule Matrax do
       ]
   """
   @spec set_row(t, non_neg_integer, t) :: t
-  def set_row(%Matrax{columns: columns} = matrax, row_index, %Matrax{columns: columns, rows: 1} = row_matrax) do
+  def set_row(
+        %Matrax{columns: columns} = matrax,
+        row_index,
+        %Matrax{columns: columns, rows: 1} = row_matrax
+      ) do
     matrax
     |> row(row_index)
     |> Matrax.apply(fn _, position ->
@@ -1132,7 +1157,11 @@ defmodule Matrax do
       ]
   """
   @spec set_column(t, non_neg_integer, t) :: t
-  def set_column(%Matrax{rows: rows} = matrax, column_index, %Matrax{rows: rows, columns: 1} = column_matrax) do
+  def set_column(
+        %Matrax{rows: rows} = matrax,
+        column_index,
+        %Matrax{rows: rows, columns: 1} = column_matrax
+      ) do
     matrax
     |> column(column_index)
     |> Matrax.apply(fn _, position ->
