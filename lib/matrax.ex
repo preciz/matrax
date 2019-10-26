@@ -459,11 +459,7 @@ defmodule Matrax do
   """
   @spec max(t) :: integer
   def max(%Matrax{} = matrax) do
-    last_index = count(matrax)
-    first_position = index_to_position(matrax, last_index)
-
-    {max_value, _position} =
-      do_argmax(matrax, last_index - 1, {get(matrax, first_position), first_position})
+    {max_value, _position} = do_argmax(matrax)
 
     max_value
   end
@@ -838,28 +834,38 @@ defmodule Matrax do
       iex> matrax = Matrax.new(5, 5, seed_fun: fn _, {row, col} -> row * col end)
       iex> matrax |> Matrax.argmax()
       {4, 4}
+      iex> matrax = Matrax.new(5, 5) # all zeros
+      iex> matrax |> Matrax.argmax()
+      {0, 0}
   """
   @spec argmax(t) :: integer
   def argmax(%Matrax{} = matrax) do
-    last_index = count(matrax)
-    first_position = index_to_position(matrax, last_index)
-
-    {_, position} =
-      do_argmax(matrax, last_index - 1, {get(matrax, first_position), first_position})
+    {_, position} = do_argmax(matrax)
 
     position
   end
 
-  defp do_argmax(_, 0, acc), do: acc
+  defp do_argmax(matrax) do
+    acc = {get(matrax, {0, 0}), {0, 0}}
 
-  defp do_argmax(matrax, index, {acc_value, _acc_position} = acc) do
-    position = index_to_position(matrax, index)
+    do_argmax(matrax, 1, count(matrax), acc)
+  end
+
+  defp do_argmax(_, same, same, acc) do
+    acc
+  end
+
+  defp do_argmax(matrax, index, size, {acc_value, _acc_position} = acc) do
+    next_index = index + 1
+
+    position = index_to_position(matrax, next_index)
 
     value_at_index = get(matrax, position)
 
     do_argmax(
       matrax,
-      index - 1,
+      next_index,
+      size,
       case Kernel.max(acc_value, value_at_index) do
         ^acc_value -> acc
         _else -> {value_at_index, position}

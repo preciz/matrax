@@ -1,5 +1,9 @@
 # Changelog for Matrax
 
+## v0.3.0
+  * BREAKING - `argmax/1` now returns first position instead of last given multiple occurence of equal maximal values
+  * Implemented `argmin/1` function
+
 ## v0.2.4
   * Implemented `trace/1` function
   * Implemented `set_column/3` function
