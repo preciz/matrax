@@ -60,6 +60,7 @@ See [https://hexdocs.pm/matrax](https://hexdocs.pm/matrax) for full documentatio
 * `Matrax.diagonal/1` Returns diagonal of matrix. (access path modification only)
 * `Matrax.row/2` Returns row of matrix. (access path modification only)
 * `Matrax.column/2` Returns column of matrix. (access path modification only)
+* `Matrax.argmin/1` Returns position with smallest value.
 * `Matrax.argmax/1` Returns position with largest value.
 * `Matrax.find/2` Returns position of value's first occurence or nil.
 * `Matrax.identity/1` Creates new identity matrix.
