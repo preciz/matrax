@@ -1,5 +1,7 @@
 # Matrax
 
+[![Build Status](https://travis-ci.org/preciz/matrax.svg?branch=master)](https://travis-ci.org/preciz/matrax)
+
 A matrix library in pure Elixir based on `:atomics`.
 
 ```elixir
@@ -19,6 +21,8 @@ iex> matrax |> Matrax.to_list_of_lists()
 ## Installation
 
 Add `matrax` to your list of dependencies in `mix.exs`:
+
+**Note**: it requires OTP-21.2.1 or later.
 
 ```elixir
 def deps do
@@ -64,3 +68,7 @@ See [https://hexdocs.pm/matrax](https://hexdocs.pm/matrax) for full documentatio
 * `Matrax.argmax/1` Returns position with largest value.
 * `Matrax.find/2` Returns position of value's first occurence or nil.
 * `Matrax.identity/1` Creates new identity matrix.
+
+## License
+
+Matrax is [MIT licensed](LICENSE).
