@@ -286,6 +286,38 @@ defmodule Matrax do
     do_position_to_index(changes_tl, rows, old_columns, {row, col_index})
   end
 
+  defp do_position_to_index(
+         [{:drop_row, dropped_row_index} | changes_tl],
+         rows,
+         columns,
+         {row, col}
+       ) do
+    row =
+      if row >= dropped_row_index do
+        row + 1
+      else
+        row
+      end
+
+    do_position_to_index(changes_tl, rows + 1, columns, {row, col})
+  end
+
+  defp do_position_to_index(
+         [{:drop_column, dropped_column_index} | changes_tl],
+         rows,
+         columns,
+         {row, col}
+       ) do
+    col =
+      if col >= dropped_column_index do
+        col + 1
+      else
+        col
+      end
+
+    do_position_to_index(changes_tl, rows, columns + 1, {row, col})
+  end
+
   @doc """
   Returns value at `position` from the given matrax.
 
@@ -1364,6 +1396,77 @@ defmodule Matrax do
     {rows, columns} = elem(change, 1)
 
     %Matrax{matrax | rows: rows, columns: columns, changes: changes_tl}
+  end
+
+  @doc """
+  Drops row of matrix at given `row_index`.
+
+  Only modifies the struct, it doesn't move or mutate data.
+
+  After `drop_row/2` the access path to positions
+  will be modified during execution.
+
+  If you want to get a new `:atomics` with mofified data
+  use the `copy/1` function which applies the `:changes`.
+
+  ## Examples
+
+      iex> matrax = Matrax.new(5, 4, seed_fun: fn _, {row, _col} -> row end)
+      iex> matrax |> Matrax.to_list_of_lists()
+      [
+          [0, 0, 0, 0],
+          [1, 1, 1, 1],
+          [2, 2, 2, 2],
+          [3, 3, 3, 3],
+          [4, 4, 4, 4],
+      ]
+      iex> matrax |> Matrax.drop_row(1) |> Matrax.to_list_of_lists()
+      [
+          [0, 0, 0, 0],
+          [2, 2, 2, 2],
+          [3, 3, 3, 3],
+          [4, 4, 4, 4],
+      ]
+  """
+  @spec drop_row(t, non_neg_integer) :: t
+  def drop_row(%Matrax{rows: rows, changes: changes} = matrax, row_index)
+      when rows > 1 and row_index >= 0 and row_index < rows do
+    %Matrax{matrax | rows: rows - 1, changes: [{:drop_row, row_index} | changes]}
+  end
+
+  @doc """
+  Drops column of matrix at given `column_index`.
+
+  Only modifies the struct, it doesn't move or mutate data.
+
+  After `drop_column/2` the access path to positions
+  will be modified during execution.
+
+  If you want to get a new `:atomics` with mofified data
+  use the `copy/1` function which applies the `:changes`.
+
+  ## Examples
+
+      iex> matrax = Matrax.new(4, 5, seed_fun: fn _, {_row, col} -> col end)
+      iex> matrax |> Matrax.to_list_of_lists()
+      [
+          [0, 1, 2, 3, 4],
+          [0, 1, 2, 3, 4],
+          [0, 1, 2, 3, 4],
+          [0, 1, 2, 3, 4],
+      ]
+      iex> matrax |> Matrax.drop_column(1) |> Matrax.to_list_of_lists()
+      [
+          [0, 2, 3, 4],
+          [0, 2, 3, 4],
+          [0, 2, 3, 4],
+          [0, 2, 3, 4],
+      ]
+  """
+  @spec drop_column(t, non_neg_integer) :: t
+  def drop_column(%Matrax{columns: columns, changes: changes} = matrax, column_index)
+      when columns > 1 and column_index >= 0 and column_index < columns do
+    %Matrax{matrax | columns: columns - 1, changes: [{:drop_column, column_index} | changes]}
   end
 
   defimpl Enumerable do

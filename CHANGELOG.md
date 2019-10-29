@@ -1,5 +1,9 @@
 # Changelog for Matrax
 
+## v0.3.3
+  * Implemented `drop_row/2` and `drop_column/2` functions
+  * Implemented  addition and subtraction of list of matrices with the `add/2` and `sub/2` functions.
+
 ## v0.3.2
   * Performance - improve performance of copy/1
   * Performance - improve performance of do_position_to_index/4
