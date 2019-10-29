@@ -214,76 +214,76 @@ defmodule Matrax do
   """
   @spec position_to_index(t, position) :: pos_integer
   def position_to_index(%Matrax{rows: rows, columns: columns, changes: changes}, position) do
-    do_position_to_index(rows, columns, changes, position)
+    do_position_to_index(changes, rows, columns, position)
   end
 
-  defp do_position_to_index(rows, columns, [], {row, col})
-       when row in 0..(rows - 1) and col in 0..(columns - 1) do
+  defp do_position_to_index([], rows, columns, {row, col})
+       when row >= 0 and row < rows and col >= 0 and col < columns do
     row * columns + col + 1
   end
 
-  defp do_position_to_index(rows, columns, [:transpose | changes_tl], {row, col}) do
-    do_position_to_index(columns, rows, changes_tl, {col, row})
+  defp do_position_to_index([:transpose | changes_tl], rows, columns, {row, col}) do
+    do_position_to_index(changes_tl, columns, rows, {col, row})
   end
 
   defp do_position_to_index(
+         [{:reshape, {old_rows, old_columns}} | changes_tl],
          rows,
          columns,
-         [{:reshape, {old_rows, old_columns}} | changes_tl],
          {row, col}
        ) do
-    current_index = do_position_to_index(rows, columns, [], {row, col})
+    current_index = do_position_to_index([], rows, columns, {row, col})
 
     old_position = do_index_to_position(old_columns, current_index)
 
-    do_position_to_index(old_rows, old_columns, changes_tl, old_position)
+    do_position_to_index(changes_tl, old_rows, old_columns, old_position)
   end
 
   defp do_position_to_index(
-         _,
-         _,
          [
            {:submatrix, {old_rows, old_columns}, row_from.._row_to, col_from.._col_to}
            | changes_tl
          ],
+         _,
+         _,
          {row, col}
        ) do
-    do_position_to_index(old_rows, old_columns, changes_tl, {row + row_from, col + col_from})
+    do_position_to_index(changes_tl, old_rows, old_columns, {row + row_from, col + col_from})
   end
 
   defp do_position_to_index(
+         [{:diagonal, {old_rows, old_columns}} | changes_tl],
          1,
          _,
-         [{:diagonal, {old_rows, old_columns}} | changes_tl],
          {0, col}
        ) do
-    do_position_to_index(old_rows, old_columns, changes_tl, {col, col})
+    do_position_to_index(changes_tl, old_rows, old_columns, {col, col})
   end
 
-  defp do_position_to_index(rows, columns, [:flip_lr | changes_tl], {row, col}) do
-    do_position_to_index(rows, columns, changes_tl, {row, columns - 1 - col})
+  defp do_position_to_index([:flip_lr | changes_tl], rows, columns, {row, col}) do
+    do_position_to_index(changes_tl, rows, columns, {row, columns - 1 - col})
   end
 
-  defp do_position_to_index(rows, columns, [:flip_ud | changes_tl], {row, col}) do
-    do_position_to_index(rows, columns, changes_tl, {rows - 1 - row, col})
+  defp do_position_to_index([:flip_ud | changes_tl], rows, columns, {row, col}) do
+    do_position_to_index(changes_tl, rows, columns, {rows - 1 - row, col})
   end
 
   defp do_position_to_index(
+         [{:row, {old_rows, _old_columns}, row_index} | changes_tl],
          1,
          columns,
-         [{:row, {old_rows, _old_columns}, row_index} | changes_tl],
          {0, col}
        ) do
-    do_position_to_index(old_rows, columns, changes_tl, {row_index, col})
+    do_position_to_index(changes_tl, old_rows, columns, {row_index, col})
   end
 
   defp do_position_to_index(
+         [{:column, {_old_rows, old_columns}, col_index} | changes_tl],
          rows,
          1,
-         [{:column, {_old_rows, old_columns}, col_index} | changes_tl],
          {row, 0}
        ) do
-    do_position_to_index(rows, old_columns, changes_tl, {row, col_index})
+    do_position_to_index(changes_tl, rows, old_columns, {row, col_index})
   end
 
   @doc """
