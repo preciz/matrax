@@ -734,6 +734,10 @@ defmodule Matrax do
     do_copy(index - 1, atomics, new_atomics_ref)
   end
 
+  defp do_copy(0, _, _, _) do
+    :done
+  end
+
   defp do_copy(index, matrax, new_atomics_ref, columns) do
     value = get(matrax, {div(index - 1, columns), rem(index - 1, columns)})
 
