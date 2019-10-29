@@ -323,6 +323,8 @@ defmodule Matrax do
   @doc """
   Adds `incr` to atomic at `position`.
 
+  Returns `:ok`.
+
   ## Examples
 
       iex> matrax = Matrax.new(10, 10)
