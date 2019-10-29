@@ -1508,11 +1508,11 @@ defmodule Matrax do
       do_reduce({matrax, 0, Matrax.count(matrax)}, acc, fun)
     end
 
-    def do_reduce(_, {:halt, acc}, _fun), do: {:halted, acc}
-    def do_reduce(tuple, {:suspend, acc}, fun), do: {:suspended, acc, &do_reduce(tuple, &1, fun)}
-    def do_reduce({_, same, same}, {:cont, acc}, _fun), do: {:done, acc}
+    defp do_reduce(_, {:halt, acc}, _fun), do: {:halted, acc}
+    defp do_reduce(tuple, {:suspend, acc}, fun), do: {:suspended, acc, &do_reduce(tuple, &1, fun)}
+    defp do_reduce({_, same, same}, {:cont, acc}, _fun), do: {:done, acc}
 
-    def do_reduce({matrax, index, count}, {:cont, acc}, fun) do
+    defp do_reduce({matrax, index, count}, {:cont, acc}, fun) do
       position = Matrax.index_to_position(matrax, index + 1)
 
       do_reduce(
