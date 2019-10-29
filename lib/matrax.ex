@@ -608,8 +608,9 @@ defmodule Matrax do
       [0, 2, 4, 6, 8]
   """
   @spec row_to_list(t, non_neg_integer) :: list(integer)
-  def row_to_list(%Matrax{rows: rows} = matrax, row) when row in 0..(rows - 1) do
-    for col <- 0..(matrax.columns - 1) do
+  def row_to_list(%Matrax{rows: rows, columns: columns} = matrax, row)
+      when row in 0..(rows - 1) do
+    for col <- 0..(columns - 1) do
       get(matrax, {row, col})
     end
   end
@@ -624,8 +625,9 @@ defmodule Matrax do
       [0, 2, 4, 6, 8]
   """
   @spec column_to_list(t, non_neg_integer) :: list(integer)
-  def column_to_list(%Matrax{columns: columns} = matrax, col) when col in 0..(columns - 1) do
-    for row <- 0..(matrax.rows - 1) do
+  def column_to_list(%Matrax{rows: rows, columns: columns} = matrax, col)
+      when col in 0..(columns - 1) do
+    for row <- 0..(rows - 1) do
       get(matrax, {row, col})
     end
   end
@@ -764,21 +766,23 @@ defmodule Matrax do
       ]
   """
   @spec transpose(t) :: t
-  def transpose(%Matrax{changes: [:transpose | changes_tl]} = matrax) do
+  def transpose(
+        %Matrax{rows: rows, columns: columns, changes: [:transpose | changes_tl]} = matrax
+      ) do
     %Matrax{
       matrax
-      | rows: matrax.columns,
-        columns: matrax.rows,
+      | rows: columns,
+        columns: rows,
         changes: changes_tl
     }
   end
 
-  def transpose(%Matrax{} = matrax) do
+  def transpose(%Matrax{rows: rows, columns: columns, changes: changes} = matrax) do
     %Matrax{
       matrax
-      | rows: matrax.columns,
-        columns: matrax.rows,
-        changes: [:transpose | matrax.changes]
+      | rows: columns,
+        columns: rows,
+        changes: [:transpose | changes]
     }
   end
 
@@ -798,12 +802,12 @@ defmodule Matrax do
       [[1, 1, 1, 1, 1]]
   """
   @spec diagonal(t) :: t
-  def diagonal(%Matrax{rows: rows, columns: columns} = matrax) do
+  def diagonal(%Matrax{rows: rows, columns: columns, changes: changes} = matrax) do
     %Matrax{
       matrax
       | rows: 1,
         columns: rows,
-        changes: [{:diagonal, {rows, columns}} | matrax.changes]
+        changes: [{:diagonal, {rows, columns}} | changes]
     }
   end
 
@@ -839,7 +843,7 @@ defmodule Matrax do
   """
   @spec submatrix(t, Range.t(), Range.t()) :: t
   def submatrix(
-        %Matrax{rows: rows, columns: columns} = matrax,
+        %Matrax{rows: rows, columns: columns, changes: changes} = matrax,
         row_from..row_to = row_range,
         col_from..col_to = col_range
       )
@@ -852,7 +856,7 @@ defmodule Matrax do
       matrax
       | rows: submatrix_rows,
         columns: submatrix_columns,
-        changes: [{:submatrix, {rows, columns}, row_range, col_range} | matrax.changes]
+        changes: [{:submatrix, {rows, columns}, row_range, col_range} | changes]
     }
   end
 
@@ -988,13 +992,17 @@ defmodule Matrax do
     )
   end
 
-  def reshape(%Matrax{rows: rows, columns: columns} = matrax, desired_rows, desired_columns)
+  def reshape(
+        %Matrax{rows: rows, columns: columns, changes: changes} = matrax,
+        desired_rows,
+        desired_columns
+      )
       when rows * columns == desired_rows * desired_columns do
     %Matrax{
       matrax
       | rows: desired_rows,
         columns: desired_columns,
-        changes: [{:reshape, {rows, columns}} | matrax.changes]
+        changes: [{:reshape, {rows, columns}} | changes]
     }
   end
 
@@ -1066,8 +1074,8 @@ defmodule Matrax do
     %Matrax{matrax | changes: changes_tl}
   end
 
-  def flip_lr(%Matrax{} = matrax) do
-    %Matrax{matrax | changes: [:flip_lr | matrax.changes]}
+  def flip_lr(%Matrax{changes: changes} = matrax) do
+    %Matrax{matrax | changes: [:flip_lr | changes]}
   end
 
   @doc """
@@ -1100,8 +1108,8 @@ defmodule Matrax do
     %Matrax{matrax | changes: changes_tl}
   end
 
-  def flip_ud(%Matrax{} = matrax) do
-    %Matrax{matrax | changes: [:flip_ud | matrax.changes]}
+  def flip_ud(%Matrax{changes: changes} = matrax) do
+    %Matrax{matrax | changes: [:flip_ud | changes]}
   end
 
   @doc """
