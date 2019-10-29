@@ -68,6 +68,7 @@ See [https://hexdocs.pm/matrax](https://hexdocs.pm/matrax) for full documentatio
 * `Matrax.argmax/1` Returns position with largest value.
 * `Matrax.find/2` Returns position of value's first occurence or nil.
 * `Matrax.identity/1` Creates new identity matrix.
+* ...
 
 ## License
 
