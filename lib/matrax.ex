@@ -399,7 +399,9 @@ defmodule Matrax do
     :ok
   end
 
-  def add(%Matrax{rows: rows, columns: columns} = matrax, [%Matrax{rows: rows, columns: columns} = head | tail]) do
+  def add(%Matrax{rows: rows, columns: columns} = matrax, [
+        %Matrax{rows: rows, columns: columns} = head | tail
+      ]) do
     for row <- 0..(rows - 1), col <- 0..(columns - 1) do
       add(
         matrax,
@@ -476,7 +478,9 @@ defmodule Matrax do
     :ok
   end
 
-  def sub(%Matrax{rows: rows, columns: columns} = matrax, [%Matrax{rows: rows, columns: columns} = head | tail]) do
+  def sub(%Matrax{rows: rows, columns: columns} = matrax, [
+        %Matrax{rows: rows, columns: columns} = head | tail
+      ]) do
     for row <- 0..(rows - 1), col <- 0..(columns - 1) do
       sub(
         matrax,
