@@ -716,23 +716,21 @@ defmodule Matrax do
 
     new_atomics_ref = :atomics.new(size, signed: signed)
 
-    do_copy(matrax, new_atomics_ref, columns, 0, size)
+    do_copy(size, matrax, new_atomics_ref, columns)
 
     %Matrax{matrax | atomics: new_atomics_ref, changes: []}
   end
 
-  defp do_copy(_, _, _, same, same) do
+  defp do_copy(0, _, _, _) do
     :done
   end
 
-  defp do_copy(matrax, new_atomics_ref, columns, index, size) do
-    next_index = index + 1
+  defp do_copy(index, matrax, new_atomics_ref, columns) do
+    value = get(matrax, {div(index - 1, columns), rem(index - 1, columns)})
 
-    value = get(matrax, {div(index, columns), rem(index, columns)})
+    :atomics.put(new_atomics_ref, index, value)
 
-    :atomics.put(new_atomics_ref, next_index, value)
-
-    do_copy(matrax, new_atomics_ref, columns, next_index, size)
+    do_copy(index - 1, matrax, new_atomics_ref, columns)
   end
 
   @doc """
