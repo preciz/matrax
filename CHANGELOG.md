@@ -1,5 +1,8 @@
 # Changelog for Matrax
 
+## v0.3.1
+  * Bug fix - fix behaviour of `diagonal/1` for non square matrices
+
 ## v0.3.0
   * Bug fix - positions after `reshape/3` were not mapped to indexes correctly
   * BREAKING - `argmax/1` now returns first position instead of last given multiple occurence of equal maximal values
