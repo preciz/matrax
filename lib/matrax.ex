@@ -343,6 +343,43 @@ defmodule Matrax do
   end
 
   @doc """
+  Adds a list of matrices to `matrax`.
+
+  Size (rows, columns) of matrices must match.
+
+  Returns `:ok`.
+
+  ## Examples
+
+      iex> matrax = Matrax.new(5, 5)
+      iex> matrax7 = Matrax.new(5, 5, seed_fun: fn _ -> 7 end)
+      iex> matrax |> Matrax.get({0, 0})
+      0
+      iex> matrax |> Matrax.add([matrax7, matrax7])
+      iex> matrax |> Matrax.get({0, 0})
+      14
+      iex> matrax |> Matrax.add([matrax7])
+      iex> matrax |> Matrax.get({0, 0})
+      21
+  """
+  @spec add(t, list(t) | []) :: :ok
+  def add(%Matrax{}, []) do
+    :ok
+  end
+
+  def add(%Matrax{rows: rows, columns: columns} = matrax, [%Matrax{rows: rows, columns: columns} = head | tail]) do
+    for row <- 0..(rows - 1), col <- 0..(columns - 1) do
+      add(
+        matrax,
+        {row, col},
+        get(head, {row, col})
+      )
+    end
+
+    add(matrax, tail)
+  end
+
+  @doc """
   Atomic addition and return of the result.
 
   Adds `incr` to atomic at `position` and returns result.
@@ -380,6 +417,43 @@ defmodule Matrax do
     index = position_to_index(matrax, position)
 
     :atomics.sub(atomics, index, decr)
+  end
+
+  @doc """
+  Subtracts a list of matrices from `matrax`.
+
+  Size (rows, columns) of matrices must match.
+
+  Returns `:ok`.
+
+  ## Examples
+
+      iex> matrax = Matrax.new(5, 5)
+      iex> matrax7 = Matrax.new(5, 5, seed_fun: fn _ -> 7 end)
+      iex> matrax |> Matrax.get({0, 0})
+      0
+      iex> matrax |> Matrax.sub([matrax7, matrax7])
+      iex> matrax |> Matrax.get({0, 0})
+      -14
+      iex> matrax |> Matrax.sub([matrax7])
+      iex> matrax |> Matrax.get({0, 0})
+      -21
+  """
+  @spec sub(t, list(t) | []) :: :ok
+  def sub(%Matrax{}, []) do
+    :ok
+  end
+
+  def sub(%Matrax{rows: rows, columns: columns} = matrax, [%Matrax{rows: rows, columns: columns} = head | tail]) do
+    for row <- 0..(rows - 1), col <- 0..(columns - 1) do
+      sub(
+        matrax,
+        {row, col},
+        get(head, {row, col})
+      )
+    end
+
+    sub(matrax, tail)
   end
 
   @doc """
