@@ -1,5 +1,9 @@
 # Changelog for Matrax
 
+## v0.3.2
+  * Performance - improve performance of copy/1
+  * Performance - improve performance of do_position_to_index/4
+
 ## v0.3.1
   * Bug fix - fix behaviour of `diagonal/1` for non square matrices
 
@@ -17,7 +21,7 @@
 
 ## v0.2.3
   * Implemented `new/1` with list_of_lists as argument
-  * Improved overall performance and more than halved copy/1 runtime
+  * Performance - improved overall performance and more than halved copy/1 runtime
   * Implemented `row/2` function
   * Implemented `column/2` function
 
