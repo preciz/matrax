@@ -252,12 +252,12 @@ defmodule Matrax do
   end
 
   defp do_position_to_index(
+         1,
          _,
-         columns,
-         [{:diagonal, {old_rows, _old_columns}} | changes_tl],
-         {row, col}
+         [{:diagonal, {old_rows, old_columns}} | changes_tl],
+         {0, col}
        ) do
-    do_position_to_index(old_rows, columns, changes_tl, {row + col, col})
+    do_position_to_index(old_rows, old_columns, changes_tl, {col, col})
   end
 
   defp do_position_to_index(rows, columns, [:flip_lr | changes_tl], {row, col}) do
@@ -802,6 +802,7 @@ defmodule Matrax do
     %Matrax{
       matrax
       | rows: 1,
+        columns: rows,
         changes: [{:diagonal, {rows, columns}} | matrax.changes]
     }
   end
