@@ -711,18 +711,27 @@ defmodule Matrax do
       -9
   """
   @spec copy(t) :: t
-  def copy(%Matrax{columns: columns, signed: signed} = matrax) do
+  def copy(%Matrax{atomics: atomics, changes: changes, signed: signed, columns: columns} = matrax) do
     size = count(matrax)
 
     new_atomics_ref = :atomics.new(size, signed: signed)
 
-    do_copy(size, matrax, new_atomics_ref, columns)
+    case changes do
+      [] -> do_copy(size, atomics, new_atomics_ref)
+      [_ | _] -> do_copy(size, matrax, new_atomics_ref, columns)
+    end
 
     %Matrax{matrax | atomics: new_atomics_ref, changes: []}
   end
 
-  defp do_copy(0, _, _, _) do
+  defp do_copy(0, _, _) do
     :done
+  end
+
+  defp do_copy(index, atomics, new_atomics_ref) do
+    :atomics.put(new_atomics_ref, index, :atomics.get(atomics, index))
+
+    do_copy(index - 1, atomics, new_atomics_ref)
   end
 
   defp do_copy(index, matrax, new_atomics_ref, columns) do
