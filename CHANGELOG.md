@@ -1,5 +1,8 @@
 # Changelog for Matrax
 
+## v0.3.4
+  * Implemented `concat/2` for concatenation of a list of matrices
+
 ## v0.3.3
   * Implemented `drop_row/2` and `drop_column/2` functions
   * Implemented  addition and subtraction of list of matrices with the `add/2` and `sub/2` functions.

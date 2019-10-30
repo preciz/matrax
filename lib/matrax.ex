@@ -1475,6 +1475,114 @@ defmodule Matrax do
     %Matrax{matrax | columns: columns - 1, changes: [{:drop_column, column_index} | changes]}
   end
 
+  @doc """
+  Concatenates a list of `%Matrax{}` matrices.
+
+  Returns a new `%Matrax{}` struct with a new atomics reference containing all values
+  of matrices from `list`.
+
+  ## Options
+    * `:signed` - (boolean) to have signed or unsigned 64bit integers in the new matrix. Defaults to `true`.
+
+  ## Examples
+
+      iex> matrax = Matrax.new(3, 3, seed_fun: fn _, {_row, col} -> col end)
+      iex> matrax |> Matrax.to_list_of_lists()
+      [
+          [0, 1, 2],
+          [0, 1, 2],
+          [0, 1, 2]
+      ]
+      iex> Matrax.concat([matrax, matrax], :rows) |> Matrax.to_list_of_lists()
+      [
+          [0, 1, 2],
+          [0, 1, 2],
+          [0, 1, 2],
+          [0, 1, 2],
+          [0, 1, 2],
+          [0, 1, 2]
+      ]
+      iex> Matrax.concat([matrax, matrax], :columns) |> Matrax.to_list_of_lists()
+      [
+          [0, 1, 2, 0, 1, 2],
+          [0, 1, 2, 0, 1, 2],
+          [0, 1, 2, 0, 1, 2]
+      ]
+  """
+  @spec concat(nonempty_list(t), :rows | :columns, list) :: t | no_return
+  def concat([%Matrax{rows: rows, columns: columns} | _] = list, concat_type, options \\ [])
+      when is_list(list) and length(list) > 0 do
+    can_concat? =
+      case concat_type do
+        :columns ->
+          list |> Enum.all?(&(&1.rows == rows))
+
+        :rows ->
+          list |> Enum.all?(&(&1.columns == columns))
+      end
+
+    if not can_concat? do
+      raise ArgumentError,
+            "When concatenating by #{inspect(concat_type)} all matrices should " <>
+              "have the same number of #{if(concat_type == :row, do: "columns", else: "rows")}"
+    end
+
+    signed = Keyword.get(options, :signed, true)
+
+    size =
+      list
+      |> Enum.map(&count/1)
+      |> Enum.sum()
+
+    atomics = :atomics.new(size, signed: signed)
+
+    %{min: min, max: max} = :atomics.info(atomics)
+
+    {rows, columns} =
+      case concat_type do
+        :rows ->
+          {round(size / columns), columns}
+        :columns ->
+          {rows, round(size / rows)}
+      end
+
+    matrax =
+      %Matrax{
+        atomics: atomics,
+        rows: rows,
+        columns: columns,
+        signed: signed,
+        min: min,
+        max: max,
+        changes: []
+      }
+
+    do_concat(list, matrax, 0, 0, concat_type)
+
+    matrax
+  end
+
+  defp do_concat([], _, _, _, _), do: :done
+
+  defp do_concat([%Matrax{rows: rows} | tail], matrax, target_index, source_index, :rows) when source_index == rows do
+    do_concat(tail, matrax, target_index, 0, :rows)
+  end
+
+  defp do_concat([%Matrax{columns: columns} | tail], matrax, target_index, source_index, :columns) when source_index == columns do
+    do_concat(tail, matrax, target_index, 0, :columns)
+  end
+
+  defp do_concat([head | _] = list, matrax, target_index, source_index, concat_type) do
+    case concat_type do
+      :rows ->
+        set_row(matrax, target_index, head |> row(source_index))
+      :columns ->
+        set_column(matrax, target_index, head |> column(source_index))
+    end
+
+    do_concat(list, matrax, target_index + 1, source_index + 1, concat_type)
+  end
+
   defimpl Enumerable do
     @moduledoc false
 
