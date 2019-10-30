@@ -52,7 +52,9 @@ defmodule Matrax do
   @type position :: {row :: non_neg_integer, col :: non_neg_integer}
 
   @doc """
-  Converts a `list_of_lists` to a new `%Matrax{}` struct.
+  Converts an integer `list_of_lists` to a new `%Matrax{}` struct.
+
+  Same as `new/2` without options.
 
   ## Examples
 
@@ -69,7 +71,7 @@ defmodule Matrax do
   Converts a `list_of_lists` to a new `%Matrax{}` struct.
 
   ## Options
-    * `:signed` - whether to have signed or unsigned 64bit integers
+    * `:signed` - (boolean) to have signed or unsigned 64bit integers. Defaults to `true`.
 
   ## Examples
 
@@ -111,11 +113,11 @@ defmodule Matrax do
   end
 
   @doc """
-  Returns a new `%Matrax{}` struct.
+  Returns a new `%Matrax{}` struct with the given `rows` and `columns` size.
 
   ## Options
-    * `:seed_fun` - a function to seed all positions.  See `apply/2` for further information.
-    * `:signed` - whether to have signed or unsigned 64bit integers
+    * `:seed_fun` - (function) a function to seed all positions.  See `apply/2` for further information.
+    * `:signed` - (boolean) to have signed or unsigned 64bit integers. Defaults to `true`.
 
   ## Examples
 
