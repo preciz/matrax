@@ -6,7 +6,7 @@ A matrix library in pure Elixir based on `:atomics`.
 
 Key features:
   - **concurrent accessibility**: atomics are mutable and can be accessed from multiple processes
-  - **access path only transofrmations**: transformations like transpose change only the access path so the same matrix can be worked on in multiple states by different processes at the same time
+  - **access path only transformations**: transformations like transpose change only the access path so the same matrix can be worked on in multiple states by different processes at the same time
   - **fast accessibility**: operations like `get/2` and `put/3` are very fast and based only on pure Elixir
 
 ```elixir
