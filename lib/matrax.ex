@@ -718,7 +718,7 @@ defmodule Matrax do
   end
 
   @doc """
-  Converts given row index of `%Matrax{}` to list.
+  Converts row at given row index of `%Matrax{}` to list.
 
   ## Examples
 
@@ -735,7 +735,7 @@ defmodule Matrax do
   end
 
   @doc """
-  Converts given column index of `%Matrax{}` to list.
+  Converts column at given column index of `%Matrax{}` to list.
 
   ## Examples
 
