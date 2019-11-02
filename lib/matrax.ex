@@ -825,7 +825,7 @@ defmodule Matrax do
 
       iex> matrax = Matrax.new(10, 10)
       iex> matrax |> Matrax.put({0, 0}, -9)
-      iex> matrax2 =  Matrax.copy(matrax)
+      iex> matrax2 = Matrax.copy(matrax)
       iex> Matrax.get(matrax2, {0, 0})
       -9
   """
