@@ -1,3 +1,5 @@
+# Archived. Use the [Nx](https://github.com/elixir-nx/nx) library instead.
+
 # Matrax
 
 [![Build Status](https://travis-ci.org/preciz/matrax.svg?branch=master)](https://travis-ci.org/preciz/matrax)
